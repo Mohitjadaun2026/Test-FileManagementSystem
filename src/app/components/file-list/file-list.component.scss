@@ -1,0 +1,133 @@
+/* -------------------- Card Container -------------------- */
+/* -------------------- Page Layout -------------------- */
+.files-page {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* card spacing */
+.files-card {
+  margin-bottom: 40px;
+}
+
+mat-card {
+  padding: 24px;
+  border-radius: 16px;
+  background: #ffffff; /* light card background */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  color: #121212; /* dark text for contrast */
+}
+
+/* -------------------- Header -------------------- */
+.table-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.table-actions h3 {
+  font-weight: 600;
+  margin: 0;
+  color: #121212; /* dark header text */
+}
+
+/* -------------------- Table -------------------- */
+table {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f5f5f5; /* light table background */
+}
+
+/* Header row */
+::ng-deep .mat-mdc-header-row {
+  background: #e0e0e0; /* light header */
+}
+
+::ng-deep .mat-mdc-header-cell {
+  font-weight: 600;
+  color: #0097a7; /* teal accent */
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Table rows */
+::ng-deep .mat-mdc-row {
+  transition: background 0.2s ease;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+::ng-deep .mat-mdc-row:hover {
+  background: rgba(0,188,212,0.08);
+}
+
+/* Table cells */
+::ng-deep .mat-mdc-cell {
+  color: #121212; /* dark text for readability */
+}
+
+/* -------------------- File Link -------------------- */
+.link {
+  cursor: pointer;
+  color: #0097a7; /* teal link */
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+  color: #00bcd4;
+}
+
+/* -------------------- Uploaded by text -------------------- */
+.muted {
+  font-size: 12px;
+  color: #757575; /* gray text */
+  margin-top: 2px;
+}
+
+/* -------------------- Status badges -------------------- */
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Approved / success */
+.status.ok {
+  background: rgba(76,175,80,0.15);
+  color: #4caf50;
+}
+
+/* Failed / rejected */
+.status.bad {
+  background: rgba(244,67,54,0.15);
+  color: #ef5350;
+}
+
+/* -------------------- Action Buttons -------------------- */
+button[mat-icon-button] {
+  color: #555555;
+  transition: transform .15s ease, color .2s;
+}
+
+button[mat-icon-button]:hover {
+  transform: scale(1.15);
+  color: #0097a7;
+}
+
+/* -------------------- Paginator -------------------- */
+::ng-deep mat-paginator {
+  margin-top: 16px;
+  background: transparent;
+  color: #121212;
+}
+
+::ng-deep .mat-mdc-paginator-container {
+  color: #121212;
+}

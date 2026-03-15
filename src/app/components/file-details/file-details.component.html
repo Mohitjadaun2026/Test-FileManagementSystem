@@ -1,0 +1,31 @@
+<mat-card *ngIf="file">
+    <h2>{{ file.name }}</h2>
+    <div class="meta">
+        <div><strong>Size:</strong> {{ file.size | number }} B</div>
+        <div><strong>Type:</strong> {{ file.mimeType }}</div>
+        <div><strong>Status:</strong> {{ file.status }}</div>
+        <div><strong>Uploaded:</strong> {{ file.uploadedAt | date:'medium' }}</div>
+        <div><strong>By:</strong> {{ file.uploadedBy }}</div>
+        <div *ngIf="file.version"><strong>Version:</strong> {{ file.version }}</div>
+        <div *ngIf="file.checksum"><strong>Checksum:</strong> {{ file.checksum }}</div>
+    </div>
+
+    <form [formGroup]="form" class="editor">
+        <mat-form-field class="full" appearance="outline">
+            <mat-label>Description</mat-label>
+            <textarea matInput rows="3" formControlName="description"></textarea>
+        </mat-form-field>
+
+        <mat-form-field class="full" appearance="outline">
+            <mat-label>Tags (comma-separated)</mat-label>
+            <input matInput formControlName="tags">
+        </mat-form-field>
+
+        <div class="actions">
+            <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+        </div>
+    </form>
+
+    <h3>Update Status</h3>
+    <app-status-update [fileId]="file.id" [currentStatus]="file.status" (updated)="load()"></app-status-update>
+</mat-card>

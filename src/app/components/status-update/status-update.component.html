@@ -1,0 +1,18 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="status-form">
+    <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+            <mat-option value="PENDING">Pending</mat-option>
+            <mat-option value="PROCESSING">Processing</mat-option>
+            <mat-option value="COMPLETED">Completed</mat-option>
+            <mat-option value="FAILED">Failed</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+        <mat-label>Comment (optional)</mat-label>
+        <textarea matInput rows="2" formControlName="comment"></textarea>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" type="submit">Update</button>
+</form>

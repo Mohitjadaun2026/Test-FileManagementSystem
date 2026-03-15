@@ -1,0 +1,16 @@
+# Dependencies
+.angular/
+node_modules/
+dist/
+
+# Angular build artifacts & caches
+.angular/cache/
+
+.cache/
+coverage/
+
+# OS/IDE cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

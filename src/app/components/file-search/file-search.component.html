@@ -1,0 +1,43 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="search-form">
+
+    <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput placeholder="name, tag, description" formControlName="q" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+            <mat-option value="">Any</mat-option>
+            <mat-option value="PENDING">Pending</mat-option>
+            <mat-option value="PROCESSING">Processing</mat-option>
+            <mat-option value="COMPLETED">Completed</mat-option>
+            <mat-option value="FAILED">Failed</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+        <mat-label>MIME Type</mat-label>
+        <input matInput placeholder="e.g. application/pdf" formControlName="mimeType" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+        <mat-label>Date From</mat-label>
+        <input matInput [matDatepicker]="df" formControlName="dateFrom">
+        <mat-datepicker-toggle matSuffix [for]="df"></mat-datepicker-toggle>
+        <mat-datepicker #df></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+        <mat-label>Date To</mat-label>
+        <input matInput [matDatepicker]="dt" formControlName="dateTo">
+        <mat-datepicker-toggle matSuffix [for]="dt"></mat-datepicker-toggle>
+        <mat-datepicker #dt></mat-datepicker>
+    </mat-form-field>
+
+    <div class="form-actions">
+        <button mat-raised-button color="primary" type="submit">Filter</button>
+        <button mat-button type="button" (click)="reset()">Reset</button>
+    </div>
+
+</form>

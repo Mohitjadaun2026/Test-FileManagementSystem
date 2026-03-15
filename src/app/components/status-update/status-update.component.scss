@@ -1,0 +1,95 @@
+/* -------------------- Status Form Container -------------------- */
+
+.status-form {
+  display: grid;
+  grid-template-columns: 220px 1fr auto;
+  gap: 16px;
+  align-items: end;
+
+  padding: 20px;
+  margin-top: 16px;
+
+  border-radius: 14px;
+  background: #ffffff; /* light background like login card */
+  border: 1px solid rgba(0,0,0,0.1); /* subtle border */
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08); /* subtle shadow */
+}
+
+/* -------------------- Form Fields -------------------- */
+
+.full {
+  width: 100%;
+}
+
+/* Angular Material field background */
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  background: #f5f5f5; /* light input background */
+  border-radius: 8px;
+}
+
+/* outline color */
+
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline__leading,
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline__notch,
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline__trailing {
+  border-color: #0097a7; /* teal accent */
+}
+
+/* label */
+
+::ng-deep .mat-mdc-form-field-label {
+  color: #757575; /* soft gray like login page */
+}
+
+/* input text */
+
+::ng-deep input,
+::ng-deep textarea {
+  color: #121212; /* dark text */
+}
+
+/* -------------------- Textarea -------------------- */
+
+textarea {
+  resize: vertical;
+  min-height: 40px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #121212;
+  border: 1px solid #ddd;
+}
+
+/* -------------------- Button -------------------- */
+
+.status-form button {
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-weight: 600;
+
+  background: linear-gradient(135deg, #0097a7, #6a1b9a); /* teal-purple gradient */
+  color: #ffffff;
+
+  transition: all 0.25s ease;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.1);
+}
+
+.status-form button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #00bcd4, #8e24aa);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* -------------------- Responsive -------------------- */
+
+@media (max-width: 768px) {
+  .status-form {
+    grid-template-columns: 1fr;
+  }
+
+  .status-form button {
+    width: 100%;
+  }
+}

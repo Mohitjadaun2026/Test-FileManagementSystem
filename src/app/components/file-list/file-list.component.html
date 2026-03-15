@@ -1,0 +1,60 @@
+
+<div class="files-page">
+<app-file-search (search)="onSearch($event)"></app-file-search>
+
+<mat-card>
+    <div class="table-actions">
+        <h3>Files</h3>
+        <button mat-stroked-button color="primary" routerLink="/upload"><mat-icon>upload</mat-icon> Upload</button>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z1">
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name </th>
+            <td mat-cell *matCellDef="let row">
+                <a (click)="view(row)" class="link">{{ row.name }}</a>
+                <div class="muted">by {{ row.uploadedBy }}</div>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="size">
+            <th mat-header-cell *matHeaderCellDef> Size </th>
+            <td mat-cell *matCellDef="let row"> {{ row.size | number }} B </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef> Type </th>
+            <td mat-cell *matCellDef="let row"> {{ row.mimeType }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td mat-cell *matCellDef="let row">
+                <span class="status" [class.ok]="row.status==='COMPLETED'" [class.bad]="row.status==='FAILED'">{{ row.status }}</span>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="uploadedAt">
+            <th mat-header-cell *matHeaderCellDef> Uploaded </th>
+            <td mat-cell *matCellDef="let row"> {{ row.uploadedAt | date:'medium' }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> </th>
+            <td mat-cell *matCellDef="let row">
+                <button mat-icon-button matTooltip="View details" (click)="view(row)"><mat-icon>visibility</mat-icon></button>
+                <button mat-icon-button matTooltip="Download" (click)="download(row)"><mat-icon>download</mat-icon></button>
+                <button mat-icon-button color="warn" matTooltip="Delete" (click)="delete(row)"><mat-icon>delete</mat-icon></button>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <mat-paginator [length]="total" [pageIndex]="(criteria.page||1)-1" [pageSize]="criteria.pageSize || 10" [pageSizeOptions]="[5,10,25,50]"
+                   (page)="pageChange($event)">
+    </mat-paginator>
+</mat-card>
+
+</div>
