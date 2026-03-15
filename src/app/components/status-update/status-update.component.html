@@ -14,12 +14,11 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="status-form">
     <mat-form-field appearance="outline" class="field status-field">
       <mat-label>New Status</mat-label>
-      <mat-select formControlName="status">
+      <mat-select formControlName="status" required>
         <mat-option value="PENDING">Pending</mat-option>
         <mat-option value="PROCESSING">Processing</mat-option>
-        <mat-option value="COMPLETED">Completed</mat-option>
+        <mat-option value="SUCCESS">Success</mat-option>
         <mat-option value="FAILED">Failed</mat-option>
-        <mat-option value="ARCHIVED">Archived</mat-option>
       </mat-select>
     </mat-form-field>
 

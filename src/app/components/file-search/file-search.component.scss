@@ -12,14 +12,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 /* ---- Field widths ---- */
-.f-search { flex: 2 1 140px; min-width: 0; }
-.f-status { flex: 1 1 110px; min-width: 0; }
+.f-id     { flex: 1 1 110px; min-width: 0; }
+.f-search { flex: 2 1 220px; min-width: 0; }
+.f-status { flex: 1 1 140px; min-width: 0; }
 .f-mime   { flex: 1 1 90px;  min-width: 0; }
-.f-date   { flex: 1 1 110px; min-width: 0; }
+.f-date   { flex: 1 1 150px; min-width: 0; }
+.f-record { flex: 1 1 120px; min-width: 0; }
 
 /* ---- Global field size reduction ---- */
 .search-bar mat-form-field {
@@ -141,6 +143,6 @@
 /* ---- Responsive ---- */
 @media (max-width: 700px) {
   .search-bar { flex-wrap: wrap; }
-  .f-search, .f-status, .f-mime, .f-date { flex: 1 1 calc(50% - 4px); }
+  .f-id, .f-search, .f-status, .f-date, .f-record { flex: 1 1 calc(50% - 4px); }
   .btn-filter, .btn-reset { flex: 1 1 calc(50% - 4px); justify-content: center; }
 }

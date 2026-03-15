@@ -96,6 +96,14 @@ mat-form-field.full {
   color: #121212;
 }
 
+.file-hint {
+  display: block;
+  margin-bottom: 14px;
+  color: #64748b;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
 /* Choose file button */
 .dropzone button {
   border-radius: 8px;

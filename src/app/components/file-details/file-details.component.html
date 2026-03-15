@@ -13,7 +13,7 @@
         </button>
         <div>
           <span class="page-eyebrow">File Details</span>
-          <h1 class="file-title">{{ file.name }}</h1>
+          <h1 class="file-title">{{ fileName }}</h1>
         </div>
       </div>
       <div class="header-actions">
@@ -44,12 +44,20 @@
         <!-- Info cards -->
         <div class="info-grid">
           <div class="info-card">
+            <span class="info-label">File ID</span>
+            <span class="info-value">{{ file.id }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Filename</span>
+            <span class="info-value">{{ fileName }}</span>
+          </div>
+          <div class="info-card">
             <span class="info-label">File Size</span>
             <span class="info-value">{{ formatSize(file.size) }}</span>
           </div>
           <div class="info-card">
-            <span class="info-label">MIME Type</span>
-            <span class="info-value">{{ file.mimeType || '—' }}</span>
+            <span class="info-label">File Type</span>
+            <span class="info-value">{{ fileType }}</span>
           </div>
           <div class="info-card">
             <span class="info-label">Uploaded By</span>
@@ -57,7 +65,11 @@
           </div>
           <div class="info-card">
             <span class="info-label">Upload Date</span>
-            <span class="info-value">{{ file.uploadedAt | date:'dd MMM yyyy' }}</span>
+            <span class="info-value">{{ uploadDate | date:'dd MMM yyyy, HH:mm' }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Record Count</span>
+            <span class="info-value">{{ file.recordCount | number }}</span>
           </div>
           <div class="info-card" *ngIf="file.version">
             <span class="info-label">Version</span>
@@ -66,6 +78,10 @@
           <div class="info-card wide" *ngIf="file.checksum">
             <span class="info-label">Checksum</span>
             <span class="info-value mono">{{ file.checksum }}</span>
+          </div>
+          <div class="info-card wide" *ngIf="file.errors">
+            <span class="info-label">Errors</span>
+            <span class="info-value error-text">{{ file.errors }}</span>
           </div>
         </div>
 
