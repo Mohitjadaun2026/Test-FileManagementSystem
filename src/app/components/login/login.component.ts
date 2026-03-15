@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../services/auth.service';
 
@@ -21,6 +21,7 @@ export class LoginComponent {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private snack: MatSnackBar
   ) {}
 
@@ -30,7 +31,8 @@ export class LoginComponent {
     this.auth.login(this.form.value as any).subscribe({
       next: () => {
         this.snack.open('Welcome back!', 'OK', { duration: 2000 });
-        this.router.navigate(['/files']);
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        this.router.navigateByUrl(returnUrl || '/files');
       },
       error: (err) => {
         this.snack.open(err?.error?.message ?? 'Login failed', 'Dismiss', { duration: 3500 });

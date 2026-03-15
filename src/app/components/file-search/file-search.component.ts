@@ -3,22 +3,22 @@ import { FormBuilder } from '@angular/forms';
 import { SearchCriteria } from '../../models/search-criteria.model';
 
 @Component({
-selector: 'app-file-search',
-templateUrl: './file-search.component.html',
-styleUrls: ['./file-search.component.scss']
+  selector: 'app-file-search',
+  templateUrl: './file-search.component.html',
+  styleUrls: ['./file-search.component.scss']
 })
 export class FileSearchComponent {
-@Output() search = new EventEmitter<SearchCriteria>();
+  @Output() search = new EventEmitter<SearchCriteria>();
 
-form = this.fb.group({
-q: [''],
-status: [''],
-mimeType: [''],
-dateFrom: [''],
-dateTo: ['']
-});
+  form = this.fb.group({
+    q: [''],
+    status: [''],
+    mimeType: [''],
+    dateFrom: [''],
+    dateTo: ['']
+  });
 
-constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) {}
 
   submit() {
     const { q, status, mimeType, dateFrom, dateTo } = this.form.value;
@@ -33,20 +33,7 @@ constructor(private fb: FormBuilder) {}
   }
 
   reset() {
-    this.form.reset({
-      q: '',
-      status: '',
-      mimeType: '',
-      dateFrom: '',
-      dateTo: ''
-    });
-    this.search.emit({
-      q: '',
-      status: '',
-      mimeType: '',
-      dateFrom: undefined,
-      dateTo: undefined,
-      page: 1
-    });
+    this.form.reset({ q: '', status: '', mimeType: '', dateFrom: '', dateTo: '' });
+    this.search.emit({ q: '', status: '', mimeType: '', page: 1 });
   }
 }

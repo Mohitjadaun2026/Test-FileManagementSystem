@@ -8,7 +8,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 // Components
-import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
@@ -24,7 +23,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -45,52 +43,50 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MockApiInterceptor } from './services/mock-api.interceptor';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    DashboardComponent,
-    LoginComponent,
-    RegisterComponent,
-    FileUploadComponent,
-    FileListComponent,
-    FileSearchComponent,
-    FileDetailsComponent,
-    StatusUpdateComponent,
-    NavbarComponent,
-    FooterComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    HttpClientModule,
-    FormsModule,
-    ReactiveFormsModule,
-    AppRoutingModule,
+declarations: [
+AppComponent,
+LoginComponent,
+RegisterComponent,
+FileUploadComponent,
+FileListComponent,
+FileSearchComponent,
+FileDetailsComponent,
+StatusUpdateComponent,
+NavbarComponent ,
+FooterComponent
+],
+imports: [
+BrowserModule,
+BrowserAnimationsModule,
+HttpClientModule,
+FormsModule,
+ReactiveFormsModule,
+AppRoutingModule,
 
-    // Material
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatCardModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatSelectModule,
-    MatChipsModule,
-    MatProgressBarModule,
-    MatSnackBarModule,
-    MatListModule,
-    MatMenuModule,
-    MatDialogModule,
-    MatTooltipModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatBadgeModule
-  ],
-  providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: MockApiInterceptor, multi: true }
-  ],
-  bootstrap: [AppComponent]
+// Material
+MatToolbarModule,
+MatButtonModule,
+MatIconModule,
+MatInputModule,
+MatCardModule,
+MatTableModule,
+MatPaginatorModule,
+MatSortModule,
+MatSelectModule,
+MatChipsModule,
+MatProgressBarModule,
+MatSnackBarModule,
+MatListModule,
+MatMenuModule,
+MatDialogModule,
+MatTooltipModule,
+MatDatepickerModule,
+MatNativeDateModule,
+MatBadgeModule
+],
+providers: [
+{ provide: HTTP_INTERCEPTORS, useClass: MockApiInterceptor, multi: true }
+],
+bootstrap: [AppComponent]
 })
 export class AppModule {}

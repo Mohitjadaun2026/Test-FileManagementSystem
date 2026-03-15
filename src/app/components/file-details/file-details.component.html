@@ -1,31 +1,134 @@
-<mat-card *ngIf="file">
-    <h2>{{ file.name }}</h2>
-    <div class="meta">
-        <div><strong>Size:</strong> {{ file.size | number }} B</div>
-        <div><strong>Type:</strong> {{ file.mimeType }}</div>
-        <div><strong>Status:</strong> {{ file.status }}</div>
-        <div><strong>Uploaded:</strong> {{ file.uploadedAt | date:'medium' }}</div>
-        <div><strong>By:</strong> {{ file.uploadedBy }}</div>
-        <div *ngIf="file.version"><strong>Version:</strong> {{ file.version }}</div>
-        <div *ngIf="file.checksum"><strong>Checksum:</strong> {{ file.checksum }}</div>
+<div class="details-page">
+
+  <!-- Loading -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="top-loader"></mat-progress-bar>
+
+  <ng-container *ngIf="file && !loading">
+
+    <!-- ── Page Header ── -->
+    <div class="page-header">
+      <div class="header-left">
+        <button mat-icon-button class="back-btn" routerLink="/files" matTooltip="Back to file list">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div>
+          <span class="page-eyebrow">File Details</span>
+          <h1 class="file-title">{{ file.name }}</h1>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button class="hdr-btn download" (click)="download()" matTooltip="Download file">
+          <mat-icon>download</mat-icon> Download
+        </button>
+        <button mat-stroked-button class="hdr-btn status" (click)="openStatusDialog()" matTooltip="Update status">
+          <mat-icon>edit_note</mat-icon> Update Status
+        </button>
+        <button mat-stroked-button class="hdr-btn danger" (click)="delete()" matTooltip="Delete file">
+          <mat-icon>delete_outline</mat-icon> Delete
+        </button>
+      </div>
     </div>
 
-    <form [formGroup]="form" class="editor">
-        <mat-form-field class="full" appearance="outline">
-            <mat-label>Description</mat-label>
-            <textarea matInput rows="3" formControlName="description"></textarea>
-        </mat-form-field>
+    <!-- ── Two-column layout ── -->
+    <div class="detail-grid">
 
-        <mat-form-field class="full" appearance="outline">
-            <mat-label>Tags (comma-separated)</mat-label>
-            <input matInput formControlName="tags">
-        </mat-form-field>
+      <!-- LEFT: meta + tags/desc -->
+      <div class="left-col">
 
-        <div class="actions">
-            <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+        <!-- Status banner -->
+        <div class="status-banner">
+          <span class="status-badge" [ngClass]="statusClass(file.status)">{{ file.status }}</span>
+          <span class="status-hint">Current processing state</span>
         </div>
-    </form>
 
-    <h3>Update Status</h3>
-    <app-status-update [fileId]="file.id" [currentStatus]="file.status" (updated)="load()"></app-status-update>
-</mat-card>
+        <!-- Info cards -->
+        <div class="info-grid">
+          <div class="info-card">
+            <span class="info-label">File Size</span>
+            <span class="info-value">{{ formatSize(file.size) }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">MIME Type</span>
+            <span class="info-value">{{ file.mimeType || '—' }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Uploaded By</span>
+            <span class="info-value">{{ file.uploadedBy || 'System' }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Upload Date</span>
+            <span class="info-value">{{ file.uploadedAt | date:'dd MMM yyyy' }}</span>
+          </div>
+          <div class="info-card" *ngIf="file.version">
+            <span class="info-label">Version</span>
+            <span class="info-value">v{{ file.version }}</span>
+          </div>
+          <div class="info-card wide" *ngIf="file.checksum">
+            <span class="info-label">Checksum</span>
+            <span class="info-value mono">{{ file.checksum }}</span>
+          </div>
+        </div>
+
+        <!-- Tags display -->
+        <div class="tags-row" *ngIf="file.tags && file.tags.length">
+          <span class="info-label">Tags</span>
+          <div class="tag-chips">
+            <span class="tag-chip" *ngFor="let tag of file.tags">{{ tag }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: editable metadata -->
+      <div class="right-col">
+        <div class="edit-card">
+          <div class="edit-card-header">
+            <mat-icon class="edit-icon">edit</mat-icon>
+            <span>Edit Metadata</span>
+          </div>
+
+          <form [formGroup]="form" class="edit-form">
+            <mat-form-field appearance="outline" class="full-field">
+              <mat-label>Description</mat-label>
+              <textarea matInput rows="4" formControlName="description" placeholder="Add a description…"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-field">
+              <mat-label>Tags</mat-label>
+              <input matInput formControlName="tags" placeholder="e.g. trade, equity, q1" />
+              <mat-hint>Comma-separated</mat-hint>
+            </mat-form-field>
+
+            <div class="edit-actions">
+              <button mat-raised-button class="btn-save" (click)="save()" [disabled]="saving">
+                <mat-icon>save</mat-icon>
+                {{ saving ? 'Saving…' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-wide">
+      <div class="status-card">
+        <div class="edit-card-header">
+          <mat-icon class="edit-icon">swap_horiz</mat-icon>
+          <span>Update Status</span>
+        </div>
+        <app-status-update [fileId]="file.id" [currentStatus]="file.status" (updated)="load()"></app-status-update>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- Empty / error state -->
+  <div *ngIf="!loading && !file" class="empty-state">
+    <div class="empty-icon">📄</div>
+    <h3>File not found</h3>
+    <p>The file may have been deleted or the ID is invalid.</p>
+    <button mat-raised-button routerLink="/files" color="primary">Back to Files</button>
+  </div>
+
+</div>
+
