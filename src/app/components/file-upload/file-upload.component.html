@@ -17,8 +17,9 @@
         <div>
             <mat-icon>cloud_upload</mat-icon>
             <p>Drag & drop files here or</p>
+            <small class="file-hint">{{ acceptedFileHint }}</small>
             <button mat-stroked-button (click)="triggerFilePick()">Browse files</button>
-            <input #fileInput type="file" multiple (change)="onFileSelected($event)" hidden>
+            <input #fileInput type="file" multiple accept=".csv,.txt,.xml,.xls,.xlsx" (change)="onFileSelected($event)" hidden>
         </div>
     </div>
 

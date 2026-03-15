@@ -81,8 +81,11 @@ export class FileDetailsComponent implements OnInit {
     this.dialog.open(StatusUpdateComponent, {
       width: '420px',
       data: { fileId: this.file.id, currentStatus: this.file.status }
-    }).afterClosed().subscribe(updated => { if (updated) this.load(); });
+    }).afterClosed().subscribe((updated) => {
+      if (updated) this.load();
+    });
   }
+
 
   download() {
     if (!this.file) return;
@@ -90,9 +93,12 @@ export class FileDetailsComponent implements OnInit {
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = this.file!.name;
-        document.body.appendChild(a); a.click();
-        a.remove(); URL.revokeObjectURL(url);
+        a.href = url;
+        a.download = this.fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
         this.snack.open('Download started', 'OK', { duration: 1500 });
       },
       error: () => this.snack.open('Download failed', 'Dismiss', { duration: 3000 })
@@ -100,7 +106,7 @@ export class FileDetailsComponent implements OnInit {
   }
 
   delete() {
-    if (!this.file || !confirm(`Delete "${this.file.name}"? This cannot be undone.`)) return;
+    if (!this.file || !confirm(`Delete "${this.fileName}"? This cannot be undone.`)) return;
     this.api.delete(this.file.id).subscribe({
       next: () => {
         this.snack.open('File deleted', 'OK', { duration: 1500 });
@@ -108,6 +114,18 @@ export class FileDetailsComponent implements OnInit {
       },
       error: () => this.snack.open('Delete failed', 'Dismiss', { duration: 3000 })
     });
+  }
+
+  get fileName(): string {
+    return this.file?.filename || this.file?.name || 'Unknown file';
+  }
+
+  get uploadDate(): string {
+    return this.file?.uploadDate || this.file?.uploadedAt || '';
+  }
+
+  get fileType(): string {
+    return this.file?.fileType || this.file?.mimeType || '—';
   }
 
   formatSize(bytes: number): string {
@@ -118,9 +136,11 @@ export class FileDetailsComponent implements OnInit {
 
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      PENDING: 'badge-pending', PROCESSING: 'badge-processing',
-      COMPLETED: 'badge-success', SUCCESS: 'badge-success',
-      FAILED: 'badge-failed', ARCHIVED: 'badge-archived'
+      PENDING: 'badge-pending',
+      PROCESSING: 'badge-processing',
+      COMPLETED: 'badge-success',
+      SUCCESS: 'badge-success',
+      FAILED: 'badge-failed'
     };
     return map[status] || 'badge-default';
   }

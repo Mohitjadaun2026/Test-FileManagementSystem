@@ -1,14 +1,16 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { FileLoadService } from '../../services/file-load.service';
+import { Subject, timer } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { FileItem, PagedResult } from '../../models/file-load.model';
 import { SearchCriteria } from '../../models/search-criteria.model';
 import { AuthService } from '../../services/auth.service';
+import { FileLoadService } from '../../services/file-load.service';
 import { StatusUpdateComponent } from '../status-update/status-update.component';
 
 @Component({
@@ -16,13 +18,14 @@ import { StatusUpdateComponent } from '../status-update/status-update.component'
   templateUrl: './file-list.component.html',
   styleUrls: ['./file-list.component.scss']
 })
-export class FileListComponent implements OnInit {
-  displayedColumns = ['name', 'size', 'type', 'status', 'uploadedAt', 'actions'];
+export class FileListComponent implements OnInit, OnDestroy {
+  displayedColumns = ['id', 'filename', 'uploadDate', 'status', 'recordCount', 'actions'];
   dataSource = new MatTableDataSource<FileItem>([]);
   total = 0;
   loading = false;
 
-  criteria: SearchCriteria = { page: 1, pageSize: 10, sortField: 'uploadedAt', sortDir: 'desc' };
+  criteria: SearchCriteria = { page: 0, size: 10, sort: 'uploadDate,desc' };
+  private readonly destroy$ = new Subject<void>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -40,11 +43,23 @@ export class FileListComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.fetch();
+
+    timer(0, 10000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.fetch());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSearch(c: SearchCriteria) {
-    this.criteria = { ...this.criteria, ...c, page: 1 };
+    this.criteria = {
+      ...this.criteria,
+      ...c,
+      page: 0
+    };
     this.fetch();
   }
 
@@ -64,15 +79,22 @@ export class FileListComponent implements OnInit {
   }
 
   pageChange(ev: PageEvent) {
-    this.criteria.page = ev.pageIndex + 1;
-    this.criteria.pageSize = ev.pageSize;
+    this.criteria.page = ev.pageIndex;
+    this.criteria.size = ev.pageSize;
     this.fetch();
   }
 
   sortChange(ev: Sort) {
-    this.criteria.sortField = ev.active;
-    this.criteria.sortDir = ev.direction as 'asc' | 'desc' || 'desc';
-    this.criteria.page = 1;
+    const direction = ev.direction || 'desc';
+    const fieldMap: Record<string, string> = {
+      id: 'id',
+      filename: 'filename',
+      uploadDate: 'uploadDate',
+      status: 'status',
+      recordCount: 'recordCount'
+    };
+    this.criteria.sort = `${fieldMap[ev.active] || ev.active},${direction}`;
+    this.criteria.page = 0;
     this.fetch();
   }
 
@@ -81,14 +103,18 @@ export class FileListComponent implements OnInit {
   }
 
   openStatusDialog(row: FileItem) {
-    this.dialog.open(StatusUpdateComponent, {
-      width: '420px',
-      panelClass: 'status-dialog',
-      data: { fileId: row.id, currentStatus: row.status }
-    }).afterClosed().subscribe(updated => {
-      if (updated) this.fetch();
-    });
+    this.dialog
+      .open(StatusUpdateComponent, {
+        width: '420px',
+        panelClass: 'status-dialog',
+        data: { fileId: row.id, currentStatus: row.status }
+      })
+      .afterClosed()
+      .subscribe((updated) => {
+        if (updated) this.fetch();
+      });
   }
+
 
   download(row: FileItem) {
     this.api.download(row.id).subscribe({
@@ -96,7 +122,7 @@ export class FileListComponent implements OnInit {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = row.name;
+        a.download = row.filename || row.name;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -108,7 +134,7 @@ export class FileListComponent implements OnInit {
   }
 
   delete(row: FileItem) {
-    if (!confirm(`Delete "${row.name}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete "${row.filename || row.name}"? This cannot be undone.`)) return;
     this.api.delete(row.id).subscribe({
       next: () => {
         this.snack.open('File deleted', 'OK', { duration: 1500 });
@@ -118,10 +144,12 @@ export class FileListComponent implements OnInit {
     });
   }
 
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
+  fileName(row: FileItem): string {
+    return row.filename || row.name;
+  }
+
+  uploadDate(row: FileItem): string {
+    return row.uploadDate || row.uploadedAt;
   }
 
   statusClass(status: string): string {
@@ -130,8 +158,7 @@ export class FileListComponent implements OnInit {
       PROCESSING: 'badge-processing',
       COMPLETED: 'badge-success',
       SUCCESS: 'badge-success',
-      FAILED: 'badge-failed',
-      ARCHIVED: 'badge-archived'
+      FAILED: 'badge-failed'
     };
     return map[status] || 'badge-default';
   }

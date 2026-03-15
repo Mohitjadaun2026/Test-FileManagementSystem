@@ -142,7 +142,6 @@
 .badge-processing { background: rgba(59,130,246,0.14); color: #1d4ed8; }
 .badge-success    { background: rgba(34,197,94,0.14);  color: #15803d; }
 .badge-failed     { background: rgba(239,68,68,0.14);  color: #b91c1c; }
-.badge-archived   { background: rgba(100,116,139,0.14);color: #475569; }
 .badge-default    { background: #f1f5f9; color: #64748b; }
 
 /* ---- Info Grid ---- */
@@ -192,6 +191,10 @@
   font-family: 'Roboto Mono', monospace;
   font-size: 0.78rem;
   color: #475569;
+}
+
+.info-value.error-text {
+  color: #b91c1c;
 }
 
 /* ---- Tags ---- */

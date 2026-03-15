@@ -1,11 +1,12 @@
 export interface SearchCriteria {
-  q?: string;
+  fileId?: string;
+  filename?: string;
   status?: string;
-  mimeType?: string;
-  dateFrom?: string; // ISO date
-  dateTo?: string;   // ISO date
+  startDate?: string;
+  endDate?: string;
+  recordCountMin?: number;
+  recordCountMax?: number;
   page?: number;
-  pageSize?: number;
-  sortField?: string;
-  sortDir?: 'asc' | 'desc';
+  size?: number;
+  sort?: string;
 }

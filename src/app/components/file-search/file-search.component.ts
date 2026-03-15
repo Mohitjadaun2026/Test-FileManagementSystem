@@ -11,29 +11,50 @@ export class FileSearchComponent {
   @Output() search = new EventEmitter<SearchCriteria>();
 
   form = this.fb.group({
-    q: [''],
+    fileId: [''],
+    filename: [''],
     status: [''],
-    mimeType: [''],
-    dateFrom: [''],
-    dateTo: ['']
+    startDate: [''],
+    endDate: [''],
+    recordCountMin: [''],
+    recordCountMax: ['']
   });
 
   constructor(private fb: FormBuilder) {}
 
   submit() {
-    const { q, status, mimeType, dateFrom, dateTo } = this.form.value;
+    const { fileId, filename, status, startDate, endDate, recordCountMin, recordCountMax } = this.form.value;
     this.search.emit({
-      q: q || '',
+      fileId: fileId || '',
+      filename: filename || '',
       status: status || '',
-      mimeType: mimeType || '',
-      dateFrom: dateFrom ? new Date(dateFrom).toISOString() : undefined,
-      dateTo: dateTo ? new Date(dateTo).toISOString() : undefined,
-      page: 1
+      startDate: startDate ? new Date(startDate).toISOString() : undefined,
+      endDate: endDate ? new Date(endDate).toISOString() : undefined,
+      recordCountMin: recordCountMin !== '' && recordCountMin !== null ? Number(recordCountMin) : undefined,
+      recordCountMax: recordCountMax !== '' && recordCountMax !== null ? Number(recordCountMax) : undefined,
+      page: 0
     });
   }
 
   reset() {
-    this.form.reset({ q: '', status: '', mimeType: '', dateFrom: '', dateTo: '' });
-    this.search.emit({ q: '', status: '', mimeType: '', page: 1 });
+    this.form.reset({
+      fileId: '',
+      filename: '',
+      status: '',
+      startDate: '',
+      endDate: '',
+      recordCountMin: '',
+      recordCountMax: ''
+    });
+    this.search.emit({
+      fileId: '',
+      filename: '',
+      status: '',
+      startDate: undefined,
+      endDate: undefined,
+      recordCountMin: undefined,
+      recordCountMax: undefined,
+      page: 0
+    });
   }
 }
