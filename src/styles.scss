@@ -17,3 +17,7 @@ $theme: mat.define-light-theme((  // <-- change to light theme
 ));
 
 @include mat.all-component-themes($theme);
+
+.snack-top-offset {
+  margin-top: 84px !important;
+}
