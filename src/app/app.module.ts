@@ -30,7 +30,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -43,50 +43,51 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MockApiInterceptor } from './services/mock-api.interceptor';
 
 @NgModule({
-declarations: [
-AppComponent,
-LoginComponent,
-RegisterComponent,
-FileUploadComponent,
-FileListComponent,
-FileSearchComponent,
-FileDetailsComponent,
-StatusUpdateComponent,
-NavbarComponent ,
-FooterComponent
-],
-imports: [
-BrowserModule,
-BrowserAnimationsModule,
-HttpClientModule,
-FormsModule,
-ReactiveFormsModule,
-AppRoutingModule,
+  declarations: [
+    AppComponent,
+    LoginComponent,
+    RegisterComponent,
+    FileUploadComponent,
+    FileListComponent,
+    FileSearchComponent,
+    FileDetailsComponent,
+    StatusUpdateComponent,
+    NavbarComponent ,
+    FooterComponent
+  ],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
 
-// Material
-MatToolbarModule,
-MatButtonModule,
-MatIconModule,
-MatInputModule,
-MatCardModule,
-MatTableModule,
-MatPaginatorModule,
-MatSortModule,
-MatSelectModule,
-MatChipsModule,
-MatProgressBarModule,
-MatSnackBarModule,
-MatListModule,
-MatMenuModule,
-MatDialogModule,
-MatTooltipModule,
-MatDatepickerModule,
-MatNativeDateModule,
-MatBadgeModule
-],
-providers: [
-{ provide: HTTP_INTERCEPTORS, useClass: MockApiInterceptor, multi: true }
-],
-bootstrap: [AppComponent]
+    // Material
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatInputModule,
+    MatCardModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatSelectModule,
+    MatChipsModule,
+    MatProgressBarModule,
+    MatSnackBarModule,
+    MatListModule,
+    MatMenuModule,
+    MatDialogModule,
+    MatTooltipModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatBadgeModule
+  ],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: MockApiInterceptor, multi: true },
+    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { verticalPosition: 'top', panelClass: ['snack-top-offset'] } }
+  ],
+  bootstrap: [AppComponent]
 })
 export class AppModule {}
