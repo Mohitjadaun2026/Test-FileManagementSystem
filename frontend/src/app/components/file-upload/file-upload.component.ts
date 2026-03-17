@@ -1,12 +1,16 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FileLoadService } from '../../services/file-load.service';
 
 interface UploadItem {
   file: File;
   progress: number;
-  state: 'queued' | 'uploading' | 'done' | 'error';
+  state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
+  sub?: Subscription;
+  startedAt?: number;
+  finishTimer?: ReturnType<typeof setTimeout>;
 }
 
 @Component({
@@ -32,11 +36,31 @@ export class FileUploadComponent {
   description = '';
   tagsText = '';
   isOver = false;
+  private readonly minVisibleUploadMs = 2200;
 
   constructor(private api: FileLoadService, private snack: MatSnackBar) {}
 
   get acceptedFileHint(): string {
     return `${this.acceptedExtensions.join(', ')} · max 10 MB`;
+  }
+
+  get isUploading(): boolean {
+    return this.uploads.some((u) => u.state === 'uploading');
+  }
+
+  get overallProgress(): number {
+    if (!this.uploads.length) return 0;
+    const total = this.uploads.reduce((acc, u) => acc + (u.progress || 0), 0);
+    return Math.round(total / this.uploads.length);
+  }
+
+  get overallStatusText(): string {
+    const done = this.uploads.filter((u) => u.state === 'done').length;
+    const failed = this.uploads.filter((u) => u.state === 'error').length;
+    const canceled = this.uploads.filter((u) => u.state === 'canceled').length;
+    if (this.isUploading) return `Uploading files... ${this.overallProgress}%`;
+    if (done || failed || canceled) return `Completed: ${done} successful, ${failed} failed, ${canceled} canceled`;
+    return 'Ready to upload';
   }
 
   onFileSelected(ev: Event) {
@@ -86,31 +110,82 @@ export class FileUploadComponent {
   }
 
   startUploads() {
+    if (this.isUploading) return;
+
+    this.startNextUpload();
+  }
+
+  private startNextUpload() {
+    if (this.isUploading) return;
+
+    const next = this.uploads.find((u) => u.state === 'queued');
+    if (!next) return;
+
     const tags = this.tagsText.split(',').map((t) => t.trim()).filter(Boolean);
     const extra = { description: this.description || undefined, tags: tags.length ? tags : undefined };
 
-    this.uploads.filter((u) => u.state === 'queued').forEach((u) => {
-      u.state = 'uploading';
-      this.api.upload(u.file, extra).subscribe({
-        next: (event) => {
-          if (event.type === HttpEventType.UploadProgress && event.total) {
-            u.progress = Math.round((100 * event.loaded) / event.total);
-          } else if (event.type === HttpEventType.Response) {
-            u.progress = 100;
-            u.state = 'done';
-            this.snack.open(`Upload successful: ${u.file.name}`, 'OK', { duration: 2000 });
+    next.state = 'uploading';
+    next.startedAt = Date.now();
+    next.progress = 3;
+
+    next.sub = this.api.upload(next.file, extra).subscribe({
+      next: (event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          if (event.total) {
+            const actual = Math.round((100 * event.loaded) / event.total);
+            // Keep headroom so users can still cancel before final commit.
+            next.progress = Math.min(96, Math.max(next.progress, actual));
+          } else {
+            next.progress = Math.min(90, next.progress + 7);
           }
-        },
-        error: () => {
-          u.state = 'error';
-          this.snack.open(`Upload failed: ${u.file.name}`, 'Dismiss', { duration: 3500 });
+        } else if (event.type === HttpEventType.Response) {
+          const elapsed = Date.now() - (next.startedAt || Date.now());
+          const wait = Math.max(0, this.minVisibleUploadMs - elapsed);
+          next.progress = Math.max(next.progress, 98);
+
+          next.finishTimer = setTimeout(() => {
+            if (next.state === 'canceled') return;
+            next.progress = 100;
+            next.state = 'done';
+            next.finishTimer = undefined;
+            this.snack.open(`Upload successful: ${next.file.name}`, 'OK', { duration: 2000 });
+            this.startNextUpload();
+          }, wait);
         }
-      });
+      },
+      error: () => {
+        if (next.state === 'canceled') return;
+        next.state = 'error';
+        next.sub = undefined;
+        this.snack.open(`Upload failed: ${next.file.name}`, 'Dismiss', { duration: 3500 });
+        this.startNextUpload();
+      },
+      complete: () => {
+        next.sub = undefined;
+      }
     });
   }
 
+  cancelUpload(item: UploadItem) {
+    if (item.state !== 'uploading' && item.state !== 'queued') return;
+
+    if (item.finishTimer) {
+      clearTimeout(item.finishTimer);
+      item.finishTimer = undefined;
+    }
+
+    item.sub?.unsubscribe();
+    item.sub = undefined;
+    item.state = 'canceled';
+    item.progress = 0;
+    this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', { duration: 1500 });
+
+    // Continue queue if an active upload was canceled.
+    this.startNextUpload();
+  }
+
   clearDone() {
-    this.uploads = this.uploads.filter((u) => u.state !== 'done');
+    this.uploads = this.uploads.filter((u) => u.state !== 'done' && u.state !== 'canceled');
   }
 
   triggerFilePick() {

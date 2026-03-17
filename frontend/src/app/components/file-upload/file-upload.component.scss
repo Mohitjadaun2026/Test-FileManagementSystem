@@ -128,6 +128,24 @@ h3 {
   color: #0097a7;
 }
 
+.overall-progress {
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 151, 167, 0.2);
+  border-radius: 10px;
+  background: #f8fdfe;
+  margin-bottom: 12px;
+}
+
+.overall-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f766e;
+  margin-bottom: 6px;
+}
+
 /* -------------------- File List -------------------- */
 mat-list {
   max-height: 280px;
@@ -180,6 +198,11 @@ mat-progress-bar {
 /* Error */
 .error {
   color: #ef5350;
+  font-weight: 700;
+}
+
+.canceled {
+  color: #b08900;
   font-weight: 700;
 }
 
@@ -247,3 +270,22 @@ span[matListItemMeta] {
     width: 100%;
   }
 }
+
+.percent {
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.btn-cancel-inline {
+  align-self: flex-end;
+  color: #d32f2f;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.btn-cancel-inline:hover {
+  background: rgba(211, 47, 47, 0.08);
+}
+
