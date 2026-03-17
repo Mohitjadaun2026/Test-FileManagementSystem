@@ -2,6 +2,11 @@
 .angular/
 node_modules/
 dist/
+frontend/.angular/
+frontend/node_modules/
+frontend/dist/
+backend/**/target/
+backend/api/uploads/
 
 # Angular build artifacts & caches
 .angular/cache/
