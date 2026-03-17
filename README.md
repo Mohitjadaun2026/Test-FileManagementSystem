@@ -223,8 +223,6 @@ Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\frontend"
 npm run build
 ```
 
----
 
-If you want, I can also generate separate `frontend/README.md` and `backend/README.md` with module-specific instructions.
 
 
