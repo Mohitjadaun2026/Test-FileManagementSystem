@@ -8,9 +8,12 @@ import com.fileload.service.FileLoadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import org.springframework.data.domain.Page;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -61,8 +64,8 @@ public class FileLoadController {
             @RequestParam(required = false) Long fileId,
             @RequestParam(required = false) String filename,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Long recordCountMin,
             @RequestParam(required = false) Long recordCountMax,
             @RequestParam(defaultValue = "0") Integer page,
@@ -73,8 +76,8 @@ public class FileLoadController {
         criteria.setFileId(fileId);
         criteria.setFilename(filename);
         criteria.setStatus(status);
-        criteria.setStartDate(startDate);
-        criteria.setEndDate(endDate);
+        criteria.setStartDate(parseDateTime(startDate));
+        criteria.setEndDate(parseDateTime(endDate));
         criteria.setRecordCountMin(recordCountMin);
         criteria.setRecordCountMax(recordCountMax);
         criteria.setPage(page);
@@ -82,6 +85,34 @@ public class FileLoadController {
         criteria.setSort(sort);
 
         return ResponseEntity.ok(fileLoadService.searchFileLoads(criteria));
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return OffsetDateTime.parse(value).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return Instant.parse(value).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return java.time.LocalDate.parse(value).atStartOfDay();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        throw new IllegalArgumentException("Invalid date format: " + value);
     }
 
     @PutMapping("/{id}/status")

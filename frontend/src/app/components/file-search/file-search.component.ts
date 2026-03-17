@@ -22,16 +22,36 @@ export class FileSearchComponent {
 
   constructor(private fb: FormBuilder) {}
 
+  private toLocalDateTime(value: unknown, endOfDay = false): string | undefined {
+    if (!value) return undefined;
+
+    const d = value instanceof Date ? value : new Date(value as string);
+    if (Number.isNaN(d.getTime())) return undefined;
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hh = endOfDay ? '23' : '00';
+    const mm = endOfDay ? '59' : '00';
+    const ss = endOfDay ? '59' : '00';
+    return `${y}-${m}-${day}T${hh}:${mm}:${ss}`;
+  }
+
   submit() {
     const { fileId, filename, status, startDate, endDate, recordCountMin, recordCountMax } = this.form.value;
+    const min = recordCountMin !== '' && recordCountMin !== null ? Number(recordCountMin) : undefined;
+    const max = recordCountMax !== '' && recordCountMax !== null ? Number(recordCountMax) : undefined;
+
+    const normalizedStatus = status === 'COMPLETED' ? 'SUCCESS' : status || '';
+
     this.search.emit({
       fileId: fileId || '',
       filename: filename || '',
-      status: status || '',
-      startDate: startDate ? new Date(startDate).toISOString() : undefined,
-      endDate: endDate ? new Date(endDate).toISOString() : undefined,
-      recordCountMin: recordCountMin !== '' && recordCountMin !== null ? Number(recordCountMin) : undefined,
-      recordCountMax: recordCountMax !== '' && recordCountMax !== null ? Number(recordCountMax) : undefined,
+      status: normalizedStatus,
+      startDate: this.toLocalDateTime(startDate, false),
+      endDate: this.toLocalDateTime(endDate, true),
+      recordCountMin: min,
+      recordCountMax: max,
       page: 0
     });
   }

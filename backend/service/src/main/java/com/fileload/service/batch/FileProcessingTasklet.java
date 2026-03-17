@@ -10,7 +10,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class FileProcessingTasklet implements Tasklet {
@@ -24,7 +23,6 @@ public class FileProcessingTasklet implements Tasklet {
     }
 
     @Override
-    @Transactional
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         Long fileLoadId = Long.valueOf(
                 chunkContext.getStepContext().getJobParameters().get("fileLoadId").toString()
@@ -37,10 +35,15 @@ public class FileProcessingTasklet implements Tasklet {
         fileLoadRepository.save(fileLoad);
 
         try {
-            long count = recordCountUtil.countRecords(Path.of(fileLoad.getStoragePath()));
-            fileLoad.setRecordCount(count);
-            fileLoad.setErrors(null);
-            fileLoad.setStatus(FileStatus.SUCCESS);
+            RecordCountUtil.ProcessingResult result = recordCountUtil.analyzeFile(Path.of(fileLoad.getStoragePath()));
+            fileLoad.setRecordCount(result.recordCount());
+            if (result.hasErrors()) {
+                fileLoad.setStatus(FileStatus.FAILED);
+                fileLoad.setErrors(result.errorMessage());
+            } else {
+                fileLoad.setErrors(null);
+                fileLoad.setStatus(FileStatus.SUCCESS);
+            }
         } catch (Exception ex) {
             fileLoad.setStatus(FileStatus.FAILED);
             fileLoad.setErrors(ex.getMessage());

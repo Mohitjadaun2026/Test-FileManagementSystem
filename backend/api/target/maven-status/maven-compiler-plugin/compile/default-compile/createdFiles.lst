@@ -6,5 +6,6 @@ com\fileload\api\controller\AuthController.class
 com\fileload\api\security\JwtUtil.class
 com\fileload\api\FileLoadApiApplication.class
 com\fileload\api\security\JwtAuthenticationFilter.class
+com\fileload\api\config\AsyncConfig.class
 com\fileload\api\config\WebConfig.class
 com\fileload\api\security\CustomUserDetailsService.class

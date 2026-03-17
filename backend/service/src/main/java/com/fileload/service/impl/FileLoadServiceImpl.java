@@ -7,6 +7,7 @@ import com.fileload.model.dto.SearchCriteriaDTO;
 import com.fileload.model.dto.UpdateMetadataRequestDTO;
 import com.fileload.model.entity.FileLoad;
 import com.fileload.model.entity.FileStatus;
+import com.fileload.service.batch.BatchJobLauncherService;
 import com.fileload.service.FileLoadService;
 import com.fileload.service.mapper.FileLoadMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,10 +17,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,21 +30,17 @@ public class FileLoadServiceImpl implements FileLoadService {
 
     private final FileLoadRepository fileLoadRepository;
     private final FileLoadMapper fileLoadMapper;
-    private final JobLauncher jobLauncher;
-    private final Job fileProcessingJob;
+    private final BatchJobLauncherService batchJobLauncherService;
 
     public FileLoadServiceImpl(FileLoadRepository fileLoadRepository,
                                FileLoadMapper fileLoadMapper,
-                               JobLauncher jobLauncher,
-                               Job fileProcessingJob) {
+                               BatchJobLauncherService batchJobLauncherService) {
         this.fileLoadRepository = fileLoadRepository;
         this.fileLoadMapper = fileLoadMapper;
-        this.jobLauncher = jobLauncher;
-        this.fileProcessingJob = fileProcessingJob;
+        this.batchJobLauncherService = batchJobLauncherService;
     }
 
     @Override
-    @Transactional
     public FileLoadResponseDTO createFileLoad(MultipartFile file) {
         try {
             Path uploadsDir = Path.of("uploads");
@@ -66,7 +59,8 @@ public class FileLoadServiceImpl implements FileLoadService {
             entity.setArchived(false);
             entity.setStoragePath(savedFile.toAbsolutePath().toString());
 
-            FileLoad saved = fileLoadRepository.save(entity);
+            // Persist immediately so async batch thread can reliably load this record by id.
+            FileLoad saved = fileLoadRepository.saveAndFlush(entity);
             launchBatch(saved.getId());
             return fileLoadMapper.toDto(saved);
         } catch (IOException ex) {
@@ -176,7 +170,6 @@ public class FileLoadServiceImpl implements FileLoadService {
     }
 
     @Override
-    @Transactional
     public FileLoadResponseDTO retryFileLoad(Long id) {
         FileLoad entity = fetchById(id);
         entity.setStatus(FileStatus.PENDING);
@@ -211,18 +204,7 @@ public class FileLoadServiceImpl implements FileLoadService {
     }
 
     private void launchBatch(Long fileLoadId) {
-        try {
-            JobParameters params = new JobParametersBuilder()
-                    .addLong("fileLoadId", fileLoadId)
-                    .addLong("startAt", System.currentTimeMillis())
-                    .toJobParameters();
-            jobLauncher.run(fileProcessingJob, params);
-        } catch (Exception ex) {
-            FileLoad entity = fetchById(fileLoadId);
-            entity.setStatus(FileStatus.FAILED);
-            entity.setErrors(ex.getMessage());
-            fileLoadRepository.save(entity);
-        }
+        batchJobLauncherService.launch(fileLoadId);
     }
 }
 
