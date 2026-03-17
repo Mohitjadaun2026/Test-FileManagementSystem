@@ -1,0 +1,11 @@
+com\fileload\model\dto\UpdateMetadataRequestDTO.class
+com\fileload\model\dto\UpdateStatusRequestDTO.class
+com\fileload\model\entity\FileStatus.class
+com\fileload\model\dto\SearchCriteriaDTO.class
+com\fileload\model\entity\UserAccount.class
+com\fileload\model\dto\FileLoadResponseDTO.class
+com\fileload\model\dto\LoginRequestDTO.class
+com\fileload\model\dto\RegisterRequestDTO.class
+com\fileload\model\entity\FileLoad.class
+com\fileload\model\dto\AuthResponseDTO.class
+com\fileload\model\dto\FileLoadRequestDTO.class
