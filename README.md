@@ -295,7 +295,6 @@ git push origin Mohit
 - Use provided npm scripts (`npm run backend`, `npm run frontend`)
 - Keep backend and frontend terminals running together while testing end-to-end flow
 
----
 
 If needed, this can be split into two docs later:
 - `frontend/README.md` for UI-only setup
