@@ -1,0 +1,11 @@
+{
+  "name": "file-load-backend",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "backend": "mvn -f api/pom.xml spring-boot:run",
+    "start": "npm run backend"
+  }
+}
+
+

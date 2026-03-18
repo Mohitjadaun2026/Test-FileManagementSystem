@@ -25,19 +25,33 @@
 
     <div *ngIf="uploads.length">
         <h3>Queue</h3>
+
+        <div class="overall-progress">
+            <div class="overall-head">
+                <span>{{ overallStatusText }}</span>
+                <span>{{ overallProgress }}%</span>
+            </div>
+            <mat-progress-bar [mode]="isUploading ? 'determinate' : 'determinate'" [value]="overallProgress"></mat-progress-bar>
+        </div>
+
         <mat-list>
             <mat-list-item *ngFor="let u of uploads">
                 <div matLine>{{ u.file.name }} <small>({{ u.file.size | number }} bytes)</small></div>
                 <div matLine>
                     <mat-progress-bar *ngIf="u.state !== 'error'" [value]="u.progress" [color]="u.state === 'done' ? 'accent' : 'primary'"></mat-progress-bar>
                     <span *ngIf="u.state === 'error'" class="error">Error</span>
+                    <span *ngIf="u.state === 'canceled'" class="canceled">Canceled</span>
+                    <span class="percent" *ngIf="u.state !== 'error'">{{ u.progress }}%</span>
                 </div>
                 <span matListItemMeta>{{ u.state | uppercase }}</span>
+                <button mat-button type="button" class="btn-cancel-inline" *ngIf="u.state === 'uploading' || u.state === 'queued'" (click)="cancelUpload(u)">
+                    {{ u.state === 'queued' ? 'Remove' : 'Cancel' }}
+                </button>
             </mat-list-item>
         </mat-list>
 
         <div class="actions">
-            <button mat-raised-button color="primary" (click)="startUploads()">Start Upload</button>
+            <button mat-raised-button color="primary" (click)="startUploads()" [disabled]="isUploading">{{ isUploading ? 'Uploading...' : 'Start Upload' }}</button>
             <button mat-button (click)="clearDone()">Clear Finished</button>
         </div>
     </div>
