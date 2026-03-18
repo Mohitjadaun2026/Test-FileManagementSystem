@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "frontend": "ng serve --no-open",
     "start": "ng serve --no-open",
     "start:open": "ng serve --open",
     "build": "ng build",

@@ -1,0 +1,12 @@
+{
+  "name": "file-load-management-system",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "backend": "mvn -f backend/api/pom.xml spring-boot:run",
+    "frontend": "npm --prefix frontend start",
+    "start": "npm run frontend"
+  }
+}
+
+
