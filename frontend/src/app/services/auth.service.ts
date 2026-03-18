@@ -10,7 +10,13 @@ export class AuthService {
   private readonly KEY = 'fl_user';
   private currentUserSubject = new BehaviorSubject<User | null>(this.loadUser());
   currentUser$ = this.currentUserSubject.asObservable();
+  // 🔥 ADD THIS
+  private profileImageSubject = new BehaviorSubject<string>('assets/default-avatar.svg');
+  profileImage$ = this.profileImageSubject.asObservable();
 
+  updateProfileImage(image: string) {
+    this.profileImageSubject.next(image);
+  }
   constructor(private http: HttpClient, private router: Router) {}
 
   private loadUser(): User | null {

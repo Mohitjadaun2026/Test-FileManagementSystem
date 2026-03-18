@@ -10,7 +10,8 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'profile', pathMatch: 'full' },
+//   { path: '', redirectTo: 'profile', pathMatch: 'full' },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

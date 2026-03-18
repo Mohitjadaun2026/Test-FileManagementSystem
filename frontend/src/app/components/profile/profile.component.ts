@@ -37,6 +37,9 @@ export class ProfileComponent implements OnInit {
         this.loadFileStatistics();
       }
     });
+this.auth.profileImage$.subscribe(img => {
+  this.profileImage = img;
+});
   }
 
   loadProfileImage(): void {
@@ -147,8 +150,11 @@ export class ProfileComponent implements OnInit {
      if (this.selectedFile) {
        localStorage.setItem(
          `profile_image_${this.currentUser?.id}`,
-         this.profileImage // ✅ use compressed image instead
+         this.profileImage
        );
+
+       // 🔥 IMPORTANT: trigger live update
+       this.auth.updateProfileImage(this.profileImage);
      }
 
       // Update user name in localStorage
