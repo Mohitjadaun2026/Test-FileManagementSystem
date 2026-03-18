@@ -18,6 +18,7 @@ import { StatusUpdateComponent } from './components/status-update/status-update.
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { ProfileDialogComponent } from './components/profile-dialog/profile-dialog.component'; // ✅ ADD THIS
 
 // Angular Material modules
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -57,7 +58,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     StatusUpdateComponent,
     NavbarComponent,
     FooterComponent,
-    ProfileComponent
+    ProfileComponent,
+    ProfileDialogComponent   // ✅ IMPORTANT
   ],
   imports: [
     BrowserModule,
@@ -92,7 +94,10 @@ import { AuthInterceptor } from './services/auth.interceptor';
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { verticalPosition: 'top', panelClass: ['snack-top-offset'] } }
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: { verticalPosition: 'top', panelClass: ['snack-top-offset'] }
+    }
   ],
   bootstrap: [AppComponent]
 })
