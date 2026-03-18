@@ -10,21 +10,19 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
-// Public landing page
-{ path: '', component: DashboardComponent },
+  { path: '', redirectTo: 'profile', pathMatch: 'full' },
 
-// Auth pages (accessible only if NOT logged in)
-{ path: 'login', component: LoginComponent },
-{ path: 'register', component: RegisterComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
 
-// Protected pages (files and upload require login)
-{ path: 'files', component: FileListComponent, canActivate: [AuthGuard] },
-{ path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] },
-{ path: 'upload', component: FileUploadComponent, canActivate: [AuthGuard] },
-{ path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
 
-// Catch-all: redirect unknown routes to dashboard
-{ path: '**', redirectTo: '', pathMatch: 'full' }
+  { path: 'files', component: FileListComponent, canActivate: [AuthGuard] },
+  { path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'upload', component: FileUploadComponent, canActivate: [AuthGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+
+  { path: '**', redirectTo: 'profile' }
 ];
 
 @NgModule({

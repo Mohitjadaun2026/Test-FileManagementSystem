@@ -114,3 +114,19 @@ $theme: mat.define-light-theme((  // <-- change to light theme
     max-width: 252px !important;
   }
 }
+body {
+  background: #f5f7fb;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+.cdk-overlay-connected-position-bounding-box {
+  height: auto !important;
+  width: auto !important;
+}
+
+.cdk-overlay-pane {
+  max-width: 300px !important;
+}

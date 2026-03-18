@@ -14,18 +14,24 @@
   <div class="profile-edit" *ngIf="isEditing">
     <h2>Edit Profile</h2>
     <div class="edit-form">
-      <div class="profile-image-upload">
-        <img [src]="profileImage" alt="Profile" class="profile-image-preview">
+      <div class="profile-image-upload" (click)="fileInput.click()">
+        <div class="image-wrapper">
+          <img [src]="profileImage" alt="Profile" class="profile-image-preview">
+
+          <!-- Overlay -->
+          <div class="overlay">
+            <mat-icon>camera_alt</mat-icon>
+            <span>Change</span>
+          </div>
+        </div>
+
         <input
-          type="file"
-          accept="image/*"
-          (change)="onFileSelected($event)"
-          #fileInput
-          style="display: none"
+                type="file"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                #fileInput
+                hidden
         >
-        <button mat-stroked-button (click)="fileInput.click()" class="upload-btn">
-          <mat-icon>upload</mat-icon> Change Image
-        </button>
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
@@ -91,4 +97,3 @@
     </div>
   </div>
 </div>
-

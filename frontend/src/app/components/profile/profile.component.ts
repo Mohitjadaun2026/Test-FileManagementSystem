@@ -82,28 +82,74 @@ export class ProfileComponent implements OnInit {
     this.selectedFile = null;
   }
 
-  onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      this.selectedFile = file;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.profileImage = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
+ onFileSelected(event: any): void {
+   const file: File = event.target.files[0];
+
+   if (!file || !file.type.startsWith('image/')) {
+     alert('Please select a valid image file');
+     return;
+   }
+
+   // Limit size (optional but recommended)
+   if (file.size > 2 * 1024 * 1024) {
+     alert('Image should be less than 2MB');
+     return;
+   }
+
+   this.selectedFile = file;
+
+   const img = new Image();
+   const reader = new FileReader();
+
+   reader.onload = (e: any) => {
+     img.src = e.target.result;
+   };
+
+   img.onload = () => {
+     const canvas = document.createElement('canvas');
+
+     const MAX_SIZE = 300; // 🔥 FIX SIZE (profile perfect size)
+     let width = img.width;
+     let height = img.height;
+
+     // Maintain aspect ratio
+     if (width > height) {
+       if (width > MAX_SIZE) {
+         height *= MAX_SIZE / width;
+         width = MAX_SIZE;
+       }
+     } else {
+       if (height > MAX_SIZE) {
+         width *= MAX_SIZE / height;
+         height = MAX_SIZE;
+       }
+     }
+
+     canvas.width = width;
+     canvas.height = height;
+
+     const ctx = canvas.getContext('2d');
+     ctx?.drawImage(img, 0, 0, width, height);
+
+     // Convert to compressed base64
+     const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+
+     // 🔥 Set preview (smooth & controlled size)
+     this.profileImage = compressedImage;
+   };
+
+   reader.readAsDataURL(file);
+ }
 
   saveProfile(): void {
     if (this.newName.trim() && this.currentUser) {
       // Save profile image to localStorage
-      if (this.selectedFile) {
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          localStorage.setItem(`profile_image_${this.currentUser?.id}`, e.target.result);
-        };
-        reader.readAsDataURL(this.selectedFile);
-      }
+     if (this.selectedFile) {
+       localStorage.setItem(
+         `profile_image_${this.currentUser?.id}`,
+         this.profileImage // ✅ use compressed image instead
+       );
+     }
 
       // Update user name in localStorage
       if (this.currentUser) {
