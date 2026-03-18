@@ -15,8 +15,9 @@ import { FileListComponent } from './components/file-list/file-list.component';
 import { FileSearchComponent } from './components/file-search/file-search.component';
 import { FileDetailsComponent } from './components/file-details/file-details.component';
 import { StatusUpdateComponent } from './components/status-update/status-update.component';
-import { NavbarComponent } from './components/navbar/navbar.component'; // <-- added
+import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { ProfileComponent } from './components/profile/profile.component';
 
 // Angular Material modules
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -38,6 +39,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDividerModule } from '@angular/material/divider';
 
 // Interceptors
 import { AuthInterceptor } from './services/auth.interceptor';
@@ -52,8 +55,9 @@ import { AuthInterceptor } from './services/auth.interceptor';
     FileSearchComponent,
     FileDetailsComponent,
     StatusUpdateComponent,
-    NavbarComponent ,
-    FooterComponent
+    NavbarComponent,
+    FooterComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,
@@ -82,7 +86,9 @@ import { AuthInterceptor } from './services/auth.interceptor';
     MatTooltipModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatFormFieldModule,
+    MatDividerModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
