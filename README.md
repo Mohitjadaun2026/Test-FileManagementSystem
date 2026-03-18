@@ -1,57 +1,55 @@
 # File Load Management System
 
-This repository contains a full-stack File Load Management System.
+This project is a **File Load Management System** built with:
+- `frontend/` -> Angular web application
+- `backend/` -> Spring Boot API (multi-module Maven project)
 
-- `frontend/` -> Angular UI
-- `backend/` -> Spring Boot multi-module backend (`api`, `service`, `dao`, `model`)
+This README is written in simple language so that any new team member can run and understand the project quickly.
 
-Use this guide to set up and run the project on a fresh machine.
+---
 
-## Table of Contents
+## 1) What This Project Does
 
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Backend Setup](#backend-setup)
-- [Frontend Setup](#frontend-setup)
-- [Run the Project](#run-the-project)
-- [API Endpoints](#api-endpoints)
-- [Troubleshooting](#troubleshooting)
-- [Developer Workflow](#developer-workflow)
+The system helps users:
+1. Register and login
+2. Upload trade files (CSV)
+3. Track file processing status
+4. View file details and record count
+5. Search and filter file history
 
-## Tech Stack
+### Status flow used in project
 
-- Frontend: Angular + Angular Material
-- Backend: Spring Boot + Spring Security + Spring Batch
-- Database: MySQL
-- Build tools: Maven (backend), npm (frontend)
+`PENDING -> PROCESSING -> SUCCESS / FAILED`
 
-## Project Structure
+So when a file is uploaded, it is first shown as pending, then processed in backend, then finally marked success or failed.
+
+---
+
+## 2) Project Structure
 
 ```text
 file-load-ui-Test-main/
-  frontend/
-	src/
-	angular.json
-	package.json
-  backend/
-	pom.xml
-	api/
-	service/
-	dao/
-	model/
+  frontend/                  # Angular app
+  backend/                   # Spring Boot multi-module backend
+	api/                     # REST controllers, security, app startup
+	service/                 # business logic + batch orchestration
+	dao/                     # repositories
+	model/                   # entities and DTOs
+  package.json               # root helper scripts
+  README.md
 ```
 
-## Prerequisites
+---
 
-Install the following:
+## 3) Prerequisites (Install Once)
 
+Install these tools first:
 - Java 21+
 - Maven 3.9+
-- Node.js 18+ and npm
+- Node.js 18+ (npm included)
 - MySQL 8+
 
-Verify installations:
+Check installation with:
 
 ```powershell
 java -version
@@ -60,169 +58,246 @@ node -v
 npm -v
 ```
 
-If `mvn` is not recognized, use full path in commands:
+If `mvn` is not recognized, Maven is not added to PATH.
+
+---
+
+## 4) One-Time Setup
+
+Open terminal in project root:
+
+```powershell
+cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+```
+
+Install frontend dependencies:
+
+```powershell
+npm --prefix frontend install
+```
+
+Optional backend build check:
+
+```powershell
+mvn -f backend/pom.xml -DskipTests clean install
+```
+
+---
+
+## 5) Run the Project (Day-to-Day)
+
+Run backend and frontend in **two separate terminals**.
+
+### Terminal 1 - Backend
+
+```powershell
+cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+npm run backend
+```
+
+### Terminal 2 - Frontend
+
+```powershell
+cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+npm run frontend
+```
+
+### Open URLs
+
+- Frontend app: `http://localhost:4200`
+- Backend API base: `http://localhost:8080/api`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+---
+
+## 6) Important Config (Database + API)
+
+Backend config file: `backend/api/src/main/resources/application.yml`
+
+Current local defaults:
+- DB URL: `jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`
+- DB Username: `root`
+- DB Password: from `DB_PASSWORD` env var (fallback exists in config)
+- Backend port: `8080`
+
+Frontend API config file: `frontend/src/environments/environment.ts`
+
+Current API URL:
+- `http://localhost:8080/api`
+
+If your DB credentials are different, set env vars before starting backend:
+
+```powershell
+$env:DB_URL="jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+$env:DB_USERNAME="root"
+$env:DB_PASSWORD="your_password_here"
+```
+
+---
+
+## 7) Feature Walkthrough (Business Flow)
+
+### A) Register
+- User enters username/email/password
+- Frontend sends request to backend auth API
+- User account is created in database
+
+### B) Login
+- User submits credentials
+- Backend validates and returns JWT token
+- Frontend stores token and sends it in future requests
+
+### C) Upload file
+- User selects CSV file
+- Frontend validates type/size
+- File uploads with progress indicator
+- Backend stores file and creates file-load record
+
+### D) Processing
+- File status is visible in list
+- Backend processing updates status and record count
+- Frontend refreshes to show latest status
+
+### E) File list and filtering
+- Users can search by id/name/status/date/range
+- Table shows key columns and actions
+
+### F) File details
+- User can open complete details
+- Shows metadata, record count, and errors if any
+
+---
+
+## 8) Where Data Is Saved
+
+### Uploaded files on disk
+
+Files are saved in:
+- `backend/api/uploads/`
+
+The backend may store files with a generated prefix for uniqueness (to avoid file name collisions).
+
+### Metadata in database
+
+File details (status, count, errors, etc.) are stored in database table(s) managed by backend modules.
+
+---
+
+## 9) Common Commands (Quick Reference)
+
+From project root:
+
+```powershell
+# run backend
+npm run backend
+
+# run frontend
+npm run frontend
+
+# run frontend via default start
+npm start
+```
+
+Backend only (from `backend/` folder):
+
+```powershell
+cd "C:\Users\acer\Downloads\file-load-ui-Test-main\backend"
+npm run backend
+```
+
+---
+
+## 10) Troubleshooting Guide
+
+### Issue: `mvn` not recognized
+
+Use full Maven path temporarily:
 
 ```powershell
 C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd -v
 ```
 
-## Backend Setup
-
-Backend config file:
-
-- `backend/api/src/main/resources/application.yml`
-
-Default local DB config:
-
-- URL: `jdbc:mysql://localhost:3306/file_load_mgmt?...`
-- Username: `root`
-- Password: configured via `DB_PASSWORD` fallback in `application.yml`
-
-Optional: set env vars before starting backend:
+And run backend with full Maven path if needed:
 
 ```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-$env:DB_USERNAME="root"
-$env:DB_PASSWORD="<your_password>"
-$env:JWT_SECRET="<base64_secret>"
+C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd -f backend/api/pom.xml spring-boot:run
 ```
 
-Build backend modules:
-
-```powershell
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\backend"
-mvn -DskipTests clean install
-```
-
-## Frontend Setup
-
-Install dependencies:
-
-```powershell
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\frontend"
-npm install
-```
-
-Build frontend:
-
-```powershell
-npm run build
-```
-
-## Run the Project
-
-Use two terminals.
-
-### Terminal 1: Backend
-
-```powershell
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\backend\api"
-mvn spring-boot:run
-```
-
-If `mvn` is not recognized:
-
-```powershell
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\backend\api"
-C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd spring-boot:run
-```
-
-### Terminal 2: Frontend
-
-```powershell
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\frontend"
-npm start
-```
-
-### Access URLs
-
-- Frontend: `http://localhost:4200`
-- Backend API: `http://localhost:8080/api`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-
-## API Endpoints
-
-Auth:
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-
-File Load:
-
-- `POST /api/file-loads`
-- `GET /api/file-loads`
-- `GET /api/file-loads/{id}`
-- `PATCH /api/file-loads/{id}`
-- `PUT /api/file-loads/{id}/status`
-- `POST /api/file-loads/{id}/retry`
-- `POST /api/file-loads/{id}/archive`
-- `DELETE /api/file-loads/{id}`
-- `GET /api/file-loads/{id}/download`
-
-## Troubleshooting
-
-### 1) Port 8080 already in use
+### Issue: Port 8080 already in use
 
 ```powershell
 Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue |
-  Select-Object -ExpandProperty OwningProcess |
-  ForEach-Object { Stop-Process -Id $_ -Force }
+Select-Object -ExpandProperty OwningProcess -Unique |
+ForEach-Object { Stop-Process -Id $_ -Force }
 ```
 
 Then start backend again.
 
-### 2) `mvn` not recognized
+### Issue: Frontend running but login/upload fails
 
-Refresh PATH in current terminal:
+Check these:
+1. Backend is running on `http://localhost:8080`
+2. Frontend API URL in `frontend/src/environments/environment.ts` is `http://localhost:8080/api`
+3. Browser network tab shows 200/401/500 details
+
+### Issue: Backend starts but database error appears
+
+Verify:
+1. MySQL service is running
+2. Username/password are correct
+3. DB URL points to localhost and proper port
+
+### Issue: Swagger not opening
+
+Confirm backend is running first, then open:
+- `http://localhost:8080/swagger-ui.html`
+
+---
+
+## 11) Interview / Demo Checklist
+
+Before demo, confirm:
+- Backend started successfully
+- Frontend started successfully
+- Login works
+- Upload works
+- Status transitions visible
+- Record count and details page visible
+- Search/filter returns expected rows
+
+---
+
+## 12) Git Push (Mohit Branch)
+
+If you are working on `Mohit` branch and want to push updates:
 
 ```powershell
-$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
-mvn -v
+cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+git branch --show-current
+git add .
+git commit -m "update readme and project changes"
+git push origin Mohit
 ```
 
-### 3) Main class not found error
-
-Run backend from `backend/api`, not from `backend` parent with plain `spring-boot:run`.
-
-### 4) Frontend cannot call backend
-
-- Confirm backend is running on port `8080`
-- Confirm `frontend/src/environments/environment.ts` has API base URL `http://localhost:8080/api`
-- Check browser network tab for exact HTTP errors
-
-### 5) Uploaded file not visible where expected
-
-Uploads are saved under backend runtime working directory, usually:
-
-- `backend/api/uploads/`
-
-## Developer Workflow
-
-Recommended day-to-day flow:
-
-1. Start MySQL
-2. Start backend
-3. Start frontend
-4. Implement feature
-5. Test via UI and Swagger
-6. Run backend compile/tests
-7. Commit/push
-
-Useful commands:
+If push is rejected (non-fast-forward):
 
 ```powershell
-# Backend compile (fast)
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\backend"
-mvn -DskipTests -pl service,api -am compile
-
-# Backend tests for service module
-mvn -pl service -am test
-
-# Frontend build
-Set-Location "C:\Users\acer\Downloads\file-load-ui-Test-main\frontend"
-npm run build
+git pull --rebase origin Mohit
+git push origin Mohit
 ```
 
+---
 
+## 13) Notes for New Developers
+
+- Start with this README first
+- Do not run backend from parent POM with plain `spring-boot:run`
+- Use provided npm scripts (`npm run backend`, `npm run frontend`)
+- Keep backend and frontend terminals running together while testing end-to-end flow
+
+
+If needed, this can be split into two docs later:
+- `frontend/README.md` for UI-only setup
+- `backend/README.md` for API and batch-only setup
 
 
