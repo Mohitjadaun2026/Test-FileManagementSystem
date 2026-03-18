@@ -22,6 +22,9 @@ public class UserAccount {
     @Column(nullable = false)
     private String role;
 
+    @Column(name = "profile_image")
+    private String profileImage;
+
     public Long getId() {
         return id;
     }
@@ -60,6 +63,14 @@ public class UserAccount {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }
 

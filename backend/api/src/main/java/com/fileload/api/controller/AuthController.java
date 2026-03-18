@@ -1,5 +1,6 @@
 package com.fileload.api.controller;
-
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import com.fileload.api.security.JwtUtil;
 import com.fileload.dao.repository.UserAccountRepository;
 import com.fileload.model.dto.AuthResponseDTO;
@@ -57,6 +58,26 @@ public class AuthController {
         String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole()));
         return ResponseEntity.status(HttpStatus.CREATED).body(toAuthResponse(user, token));
     }
+    @PostMapping("/upload-profile")
+    public ResponseEntity<Map<String, String>> uploadProfile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId
+    ) throws Exception {
+
+        UserAccount user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+        java.nio.file.Path path = java.nio.file.Paths.get("uploads/" + filename);
+        java.nio.file.Files.createDirectories(path.getParent());
+        java.nio.file.Files.write(path, file.getBytes());
+
+        user.setProfileImage("/uploads/" + filename);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("profileImage", user.getProfileImage()));
+    }
 
     @PostMapping("/login")
     @Operation(summary = "Login user")
@@ -79,6 +100,7 @@ public class AuthController {
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
         dto.setToken(token);
+        dto.setProfileImage(user.getProfileImage());
         return dto;
     }
 }

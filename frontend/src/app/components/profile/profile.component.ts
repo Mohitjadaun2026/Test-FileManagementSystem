@@ -37,18 +37,20 @@ export class ProfileComponent implements OnInit {
         this.loadFileStatistics();
       }
     });
-this.auth.profileImage$.subscribe(img => {
-  this.profileImage = img;
-});
+
   }
 
-  loadProfileImage(): void {
-    // Check if user has a profile image stored
-    const storedImage = localStorage.getItem(`profile_image_${this.currentUser?.id}`);
-    if (storedImage) {
-      this.profileImage = storedImage;
-    }
+loadProfileImage(): void {
+  if (this.currentUser?.profileImage) {
+    this.profileImage =
+      'http://localhost:8080' +
+      this.currentUser.profileImage +
+      '?t=' +
+      new Date().getTime(); // 🔥 cache fix
+  } else {
+    this.profileImage = 'assets/default-avatar.svg';
   }
+}
 
   loadFileStatistics(): void {
     // Fetch all files with default criteria
@@ -145,26 +147,41 @@ this.auth.profileImage$.subscribe(img => {
  }
 
   saveProfile(): void {
-    if (this.newName.trim() && this.currentUser) {
-      // Save profile image to localStorage
-     if (this.selectedFile) {
-       localStorage.setItem(
-         `profile_image_${this.currentUser?.id}`,
-         this.profileImage
-       );
+    if (!this.currentUser) return;
 
-       // 🔥 IMPORTANT: trigger live update
-       this.auth.updateProfileImage(this.profileImage);
-     }
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+      formData.append('userId', this.currentUser.id.toString());
 
-      // Update user name in localStorage
-      if (this.currentUser) {
-        this.currentUser.name = this.newName;
-        localStorage.setItem('fl_user', JSON.stringify(this.currentUser));
-      }
+      this.auth.uploadProfileImage(formData).subscribe((res: any) => {
 
-      this.isEditing = false;
-      alert('Profile updated successfully!');
+        const imagePath = res.profileImage; // ✅ FIX
+
+        this.profileImage = 'http://localhost:8080' + imagePath;
+
+        this.currentUser!.profileImage = imagePath;
+
+        // ✅ SIMPLE & CORRECT
+        this.auth.updateUser(this.currentUser!);
+
+        // 🔥 force UI refresh
+        this.loadProfileImage();
+
+        this.finishProfileUpdate();
+      });
+    } else {
+      this.finishProfileUpdate();
     }
   }
-}
+finishProfileUpdate(): void {
+  if (this.newName.trim() && this.currentUser) {
+    this.currentUser.name = this.newName;
+
+    // ✅ keep it simple
+    this.auth.updateUser(this.currentUser!);
+  }
+
+  this.isEditing = false;
+  alert('Profile updated successfully!');
+}}
