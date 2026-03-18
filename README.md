@@ -1,6 +1,6 @@
-# File Load Management System
+# File Management System
 
-This project is a **File Load Management System** built with:
+This project is a **File Management System** built with:
 - `frontend/` -> Angular web application
 - `backend/` -> Spring Boot API (multi-module Maven project)
 
