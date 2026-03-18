@@ -21,3 +21,96 @@ $theme: mat.define-light-theme((  // <-- change to light theme
 .snack-top-offset {
   margin-top: 84px !important;
 }
+
+/* Profile dropdown must be styled globally because mat-menu renders in CDK overlay */
+.cdk-overlay-pane .profile-dropdown-panel.mat-mdc-menu-panel {
+  width: 272px !important;
+  min-width: 272px !important;
+  max-width: 272px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .mat-mdc-menu-content {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .profile-menu-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 12px 12px 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel img.profile-avatar-menu {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  border-radius: 50% !important;
+  object-fit: cover;
+  object-position: center;
+  border: 2px solid #fff;
+  display: block;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .username,
+.cdk-overlay-pane .profile-dropdown-panel .email {
+  margin: 0;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .username {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .email {
+  font-size: 12px;
+  opacity: 0.92;
+  line-height: 1.25;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .mat-divider {
+  margin: 0;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .mat-mdc-menu-item {
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 0 14px !important;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.cdk-overlay-pane .profile-dropdown-panel .mat-mdc-menu-item .mat-icon,
+.cdk-overlay-pane .profile-dropdown-panel .mat-mdc-menu-item mat-icon {
+  margin-right: 10px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 360px) {
+  .cdk-overlay-pane .profile-dropdown-panel.mat-mdc-menu-panel {
+    width: 252px !important;
+    min-width: 252px !important;
+    max-width: 252px !important;
+  }
+}

@@ -54,11 +54,8 @@
 //   border-color: #ffffff;
 // }
 
-/* Reset default body margin so there's no gap at the top */
-html, body {
-  margin: 0;
-  padding: 0;
-}
+/* Remove global resets from component styles to avoid layout side effects */
+/* html, body { ... } moved out intentionally */
 
 /* -------------------- Navbar -------------------- */
 .navbar {
@@ -104,7 +101,8 @@ html, body {
   flex: 1 1 auto;
 }
 
-button {
+/* Apply custom styling only to toolbar text buttons, not icon/menu buttons */
+.navbar button[mat-button] {
   margin-left: 10px;
   padding: 8px 18px;
   font-weight: 600;
@@ -118,9 +116,118 @@ button {
   transition: all 0.3s;
 }
 
-button:hover {
+.navbar button[mat-button]:hover {
   background: linear-gradient(135deg, #00bcd4, #8e24aa);
   color: #ffffff;
   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
   border-color: #ffffff;
+}
+
+.profile-menu-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin-left: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* Subtle animated ring */
+.profile-menu-btn::after {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.profile-menu-btn:hover::after,
+.profile-menu-btn:focus-visible::after {
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+.profile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border: 0;
+  box-shadow: none;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  object-fit: cover;
+  object-position: center;
+  border: 2px solid #ffffff;
+  display: block;
+}
+
+.profile-dropdown {
+  .profile-header-menu {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 4px 4px 0 0;
+    min-width: 240px;
+    box-sizing: border-box;
+  }
+
+  .profile-avatar-menu {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    flex: 0 0 auto;
+  }
+
+  .user-info-menu {
+    flex: 1;
+    min-width: 0;
+
+    .username {
+      margin: 0;
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .email {
+      margin: 4px 0 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  /* Keep menu items compact and aligned */
+  button[mat-menu-item] {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+  }
+
+  button[mat-menu-item] mat-icon {
+    margin-right: 10px;
+  }
 }

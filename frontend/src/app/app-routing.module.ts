@@ -5,7 +5,8 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
-import { FileDetailsComponent } from './components/file-details/file-details.component'; // <-- import this
+import { FileDetailsComponent } from './components/file-details/file-details.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
@@ -18,8 +19,9 @@ const routes: Routes = [
 
 // Protected pages (files and upload require login)
 { path: 'files', component: FileListComponent, canActivate: [AuthGuard] },
-{ path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] }, // <-- added route
+{ path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] },
 { path: 'upload', component: FileUploadComponent, canActivate: [AuthGuard] },
+{ path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
 
 // Catch-all: redirect unknown routes to dashboard
 { path: '**', redirectTo: '', pathMatch: 'full' }
