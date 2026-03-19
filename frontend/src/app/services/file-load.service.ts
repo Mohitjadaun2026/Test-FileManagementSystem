@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpHeaders, HttpParams, HttpRequest } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { DashboardOverview } from '../models/dashboard-overview.model';
 import { FileItem, PagedResult } from '../models/file-load.model';
 import { SearchCriteria } from '../models/search-criteria.model';
 import { AuthService } from './auth.service';
@@ -99,6 +100,12 @@ export class FileLoadService {
     });
 
     return this.http.request(req);
+  }
+
+  getDashboardOverview(): Observable<DashboardOverview> {
+    return this.http.get<DashboardOverview>(`${environment.apiBaseUrl}/file-loads/overview`, {
+      headers: this.authHeaders()
+    });
   }
 
   download(id: string | number): Observable<Blob> {

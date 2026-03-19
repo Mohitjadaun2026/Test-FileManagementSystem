@@ -1,5 +1,6 @@
 package com.fileload.api.controller;
 
+import com.fileload.model.dto.DashboardOverviewDTO;
 import com.fileload.model.dto.FileLoadResponseDTO;
 import com.fileload.model.dto.SearchCriteriaDTO;
 import com.fileload.model.dto.UpdateMetadataRequestDTO;
@@ -85,6 +86,13 @@ public class FileLoadController {
         criteria.setSort(sort);
 
         return ResponseEntity.ok(fileLoadService.searchFileLoads(criteria));
+    }
+
+    @GetMapping("/overview")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @Operation(summary = "Get live dashboard overview metrics")
+    public ResponseEntity<DashboardOverviewDTO> getDashboardOverview() {
+        return ResponseEntity.ok(fileLoadService.getDashboardOverview());
     }
 
     private LocalDateTime parseDateTime(String value) {

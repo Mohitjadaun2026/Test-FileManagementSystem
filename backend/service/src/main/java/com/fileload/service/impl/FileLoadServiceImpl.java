@@ -2,6 +2,7 @@ package com.fileload.service.impl;
 
 import com.fileload.dao.repository.FileLoadRepository;
 import com.fileload.dao.specification.FileLoadSpecifications;
+import com.fileload.model.dto.DashboardOverviewDTO;
 import com.fileload.model.dto.FileLoadResponseDTO;
 import com.fileload.model.dto.SearchCriteriaDTO;
 import com.fileload.model.dto.UpdateMetadataRequestDTO;
@@ -188,6 +189,28 @@ public class FileLoadServiceImpl implements FileLoadService {
         } catch (IOException ex) {
             throw new IllegalStateException("Unable to read file", ex);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardOverviewDTO getDashboardOverview() {
+        long totalUploads = fileLoadRepository.count();
+        long pendingCount = fileLoadRepository.countByStatus(FileStatus.PENDING);
+        long processingCount = fileLoadRepository.countByStatus(FileStatus.PROCESSING);
+        long successCount = fileLoadRepository.countByStatus(FileStatus.SUCCESS);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+
+        DashboardOverviewDTO overview = new DashboardOverviewDTO();
+        overview.setTotalUploads(totalUploads);
+        overview.setInProcessing(processingCount);
+        overview.setPendingCount(pendingCount);
+        overview.setProcessingCount(processingCount);
+        overview.setSuccessCount(successCount);
+        overview.setExceptionsToday(fileLoadRepository.countByStatusAndLoadDateBetween(FileStatus.FAILED, startOfDay, now));
+        overview.setSuccessRate(totalUploads == 0 ? 0.0 : (successCount * 100.0) / totalUploads);
+        overview.setLastUpdated(now);
+        return overview;
     }
 
     private FileLoad fetchById(Long id) {
