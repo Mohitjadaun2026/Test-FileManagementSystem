@@ -84,7 +84,10 @@
   font-weight: 600;
   font-size: 0.9rem;
 }
-
+.bulk-toolbar.active {
+  background: rgba(0, 151, 167, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(0, 151, 167, 0.15);
+}
 .bulk-actions {
   display: flex;
   align-items: center;
@@ -197,15 +200,27 @@
 .badge-default    { background: #f1f5f9; color: #64748b; }
 
 /* ---- Actions ---- */
-.actions-header { text-align: center; }
+/* ---- Actions ---- */
+.actions-header {
+  text-align: center;
+}
+
 .actions-cell {
   white-space: nowrap;
   text-align: center;
-  display: flex;
+
+  /* IMPORTANT FIX */
+  display: table-cell;   /* instead of flex */
+  vertical-align: middle;
+  overflow: visible;
+}
+
+/* NEW: wrap inner content for flex */
+.actions-cell > * {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  overflow: visible;
 }
 
 .action-btn {
