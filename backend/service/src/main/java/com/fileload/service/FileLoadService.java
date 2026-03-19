@@ -15,6 +15,8 @@ public interface FileLoadService {
 
     Page<FileLoadResponseDTO> searchFileLoads(SearchCriteriaDTO criteria);
 
+    Page<FileLoadResponseDTO> searchMyFileLoads(SearchCriteriaDTO criteria);
+
     FileLoadResponseDTO updateFileLoadStatus(Long id, String status, String comment);
 
     FileLoadResponseDTO updateMetadata(Long id, UpdateMetadataRequestDTO request);

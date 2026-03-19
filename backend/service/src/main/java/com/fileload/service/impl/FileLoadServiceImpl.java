@@ -1,6 +1,7 @@
 package com.fileload.service.impl;
 
 import com.fileload.dao.repository.FileLoadRepository;
+import com.fileload.dao.repository.UserAccountRepository;
 import com.fileload.dao.specification.FileLoadSpecifications;
 import com.fileload.model.dto.DashboardOverviewDTO;
 import com.fileload.model.dto.FileLoadResponseDTO;
@@ -8,6 +9,7 @@ import com.fileload.model.dto.SearchCriteriaDTO;
 import com.fileload.model.dto.UpdateMetadataRequestDTO;
 import com.fileload.model.entity.FileLoad;
 import com.fileload.model.entity.FileStatus;
+import com.fileload.model.entity.UserAccount;
 import com.fileload.service.batch.BatchJobLauncherService;
 import com.fileload.service.FileLoadService;
 import com.fileload.service.mapper.FileLoadMapper;
@@ -19,9 +21,12 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,13 +35,16 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileLoadServiceImpl implements FileLoadService {
 
     private final FileLoadRepository fileLoadRepository;
+    private final UserAccountRepository userAccountRepository;
     private final FileLoadMapper fileLoadMapper;
     private final BatchJobLauncherService batchJobLauncherService;
 
     public FileLoadServiceImpl(FileLoadRepository fileLoadRepository,
+                               UserAccountRepository userAccountRepository,
                                FileLoadMapper fileLoadMapper,
                                BatchJobLauncherService batchJobLauncherService) {
         this.fileLoadRepository = fileLoadRepository;
+        this.userAccountRepository = userAccountRepository;
         this.fileLoadMapper = fileLoadMapper;
         this.batchJobLauncherService = batchJobLauncherService;
     }
@@ -76,6 +84,7 @@ public class FileLoadServiceImpl implements FileLoadService {
             entity.setRecordCount(0L);
             entity.setArchived(false);
             entity.setStoragePath(savedFile.toAbsolutePath().toString());
+            applyCurrentUploader(entity);
 
             // Persist immediately so async batch thread can reliably load this record by id.
             FileLoad saved = fileLoadRepository.saveAndFlush(entity);
@@ -97,6 +106,7 @@ public class FileLoadServiceImpl implements FileLoadService {
         failed.setErrors(errorMessage);
         failed.setArchived(false);
         failed.setStoragePath("");
+        applyCurrentUploader(failed);
 
         return fileLoadMapper.toDto(fileLoadRepository.saveAndFlush(failed));
     }
@@ -143,15 +153,20 @@ public class FileLoadServiceImpl implements FileLoadService {
     @Override
     @Transactional(readOnly = true)
     public Page<FileLoadResponseDTO> searchFileLoads(SearchCriteriaDTO criteria) {
-        String[] sortTokens = criteria.getSort().split(",");
-        String sortField = sortTokens[0];
-        Sort.Direction direction = sortTokens.length > 1 && "asc".equalsIgnoreCase(sortTokens[1])
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
+        return searchInternal(criteria);
+    }
 
-        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), Sort.by(direction, mapSort(sortField)));
-        return fileLoadRepository.findAll(FileLoadSpecifications.withCriteria(criteria), pageable)
-                .map(fileLoadMapper::toDto);
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FileLoadResponseDTO> searchMyFileLoads(SearchCriteriaDTO criteria) {
+        Long currentUserId = resolveCurrentUserId();
+        if (currentUserId == null) {
+            Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize());
+            return new PageImpl<>(java.util.List.of(), pageable, 0);
+        }
+
+        criteria.setUploadedById(currentUserId);
+        return searchInternal(criteria);
     }
 
     @Override
@@ -260,6 +275,49 @@ public class FileLoadServiceImpl implements FileLoadService {
 
     private void launchBatch(Long fileLoadId) {
         batchJobLauncherService.launch(fileLoadId);
+    }
+
+    private Page<FileLoadResponseDTO> searchInternal(SearchCriteriaDTO criteria) {
+        String[] sortTokens = criteria.getSort().split(",");
+        String sortField = sortTokens[0];
+        Sort.Direction direction = sortTokens.length > 1 && "asc".equalsIgnoreCase(sortTokens[1])
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), Sort.by(direction, mapSort(sortField)));
+        return fileLoadRepository.findAll(FileLoadSpecifications.withCriteria(criteria), pageable)
+                .map(fileLoadMapper::toDto);
+    }
+
+    private void applyCurrentUploader(FileLoad fileLoad) {
+        UserAccount currentUser = resolveCurrentUser();
+        if (currentUser == null) {
+            fileLoad.setUploadedById(null);
+            fileLoad.setUploadedBy("SYSTEM");
+            return;
+        }
+
+        fileLoad.setUploadedById(currentUser.getId());
+        fileLoad.setUploadedBy(currentUser.getEmail());
+    }
+
+    private Long resolveCurrentUserId() {
+        UserAccount currentUser = resolveCurrentUser();
+        return currentUser == null ? null : currentUser.getId();
+    }
+
+    private UserAccount resolveCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        String email = authentication.getName();
+        if (email == null || email.isBlank() || "anonymousUser".equalsIgnoreCase(email)) {
+            return null;
+        }
+
+        return userAccountRepository.findByEmail(email).orElse(null);
     }
 }
 

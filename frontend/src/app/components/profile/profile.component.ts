@@ -59,9 +59,16 @@ loadProfileImage(): void {
       size: 1000  // Get all files (adjust if needed)
     };
 
-    this.fileService.list(criteria).subscribe(
+    this.fileService.myList(criteria).subscribe(
       (result) => {
-        const files = result.items;
+        const currentUserId = Number(this.currentUser?.id);
+        const files = result.items.filter((file) => {
+          const uploadedById = Number(file.uploadedById);
+          if (!Number.isNaN(currentUserId) && !Number.isNaN(uploadedById)) {
+            return uploadedById === currentUserId;
+          }
+          return false;
+        });
         this.totalFiles = files.length;
         this.pendingFiles = files.filter(f => f.status === 'PENDING').length;
         this.successFiles = files.filter(f => f.status === 'SUCCESS').length;

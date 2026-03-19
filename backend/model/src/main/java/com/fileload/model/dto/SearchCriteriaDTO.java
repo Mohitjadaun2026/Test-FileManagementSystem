@@ -7,6 +7,7 @@ public class SearchCriteriaDTO {
 
     private Long fileId;
     private String filename;
+    private Long uploadedById;
     private String status;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -35,6 +36,14 @@ public class SearchCriteriaDTO {
 
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    public Long getUploadedById() {
+        return uploadedById;
+    }
+
+    public void setUploadedById(Long uploadedById) {
+        this.uploadedById = uploadedById;
     }
 
     public String getStatus() {

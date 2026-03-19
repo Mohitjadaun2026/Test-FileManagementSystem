@@ -30,6 +30,7 @@ export class FileLoadService {
       name,
       size,
       mimeType,
+      uploadedById: item?.uploadedById,
       uploadedBy: item?.uploadedBy ?? item?.uploadedByName ?? 'System',
       uploadedAt,
       status,
@@ -53,6 +54,25 @@ export class FileLoadService {
     });
 
     return this.http.get<any>(`${environment.apiBaseUrl}/file-loads`, { params, headers: this.authHeaders() }).pipe(
+      map((res) => {
+        const items = (res?.items ?? res?.content ?? []).map((item: any) => this.normalizeFile(item));
+        return {
+          items,
+          total: Number(res?.total ?? res?.totalElements ?? items.length),
+          page: Number(res?.page ?? res?.number ?? criteria.page ?? 0),
+          pageSize: Number(res?.pageSize ?? res?.size ?? criteria.size ?? 10)
+        };
+      })
+    );
+  }
+
+  myList(criteria: SearchCriteria): Observable<PagedResult<FileItem>> {
+    let params = new HttpParams();
+    Object.entries(criteria).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
+    });
+
+    return this.http.get<any>(`${environment.apiBaseUrl}/file-loads/my`, { params, headers: this.authHeaders() }).pipe(
       map((res) => {
         const items = (res?.items ?? res?.content ?? []).map((item: any) => this.normalizeFile(item));
         return {

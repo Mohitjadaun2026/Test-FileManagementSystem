@@ -25,6 +25,9 @@ public final class FileLoadSpecifications {
             if (criteria.getFilename() != null && !criteria.getFilename().isBlank()) {
                 predicates.add(cb.like(cb.lower(root.get("filename")), "%" + criteria.getFilename().toLowerCase() + "%"));
             }
+            if (criteria.getUploadedById() != null) {
+                predicates.add(cb.equal(root.get("uploadedById"), criteria.getUploadedById()));
+            }
             if (criteria.getStatus() != null && !criteria.getStatus().isBlank()) {
                 predicates.add(cb.equal(root.get("status"), FileStatus.valueOf(criteria.getStatus().toUpperCase())));
             }

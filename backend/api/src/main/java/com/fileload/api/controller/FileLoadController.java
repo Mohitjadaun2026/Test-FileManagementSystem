@@ -73,6 +73,48 @@ public class FileLoadController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "uploadDate,desc") String sort
     ) {
+        SearchCriteriaDTO criteria = buildSearchCriteria(fileId, filename, status, startDate, endDate,
+                recordCountMin, recordCountMax, page, size, sort);
+        return ResponseEntity.ok(fileLoadService.searchFileLoads(criteria));
+    }
+
+    @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @Operation(summary = "Search current user's file loads")
+    public ResponseEntity<Page<FileLoadResponseDTO>> searchMyFileLoads(
+            @RequestParam(required = false) Long fileId,
+            @RequestParam(required = false) String filename,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Long recordCountMin,
+            @RequestParam(required = false) Long recordCountMax,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "uploadDate,desc") String sort
+    ) {
+        SearchCriteriaDTO criteria = buildSearchCriteria(fileId, filename, status, startDate, endDate,
+                recordCountMin, recordCountMax, page, size, sort);
+        return ResponseEntity.ok(fileLoadService.searchMyFileLoads(criteria));
+    }
+
+    @GetMapping("/overview")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @Operation(summary = "Get live dashboard overview metrics")
+    public ResponseEntity<DashboardOverviewDTO> getDashboardOverview() {
+        return ResponseEntity.ok(fileLoadService.getDashboardOverview());
+    }
+
+    private SearchCriteriaDTO buildSearchCriteria(Long fileId,
+                                                  String filename,
+                                                  String status,
+                                                  String startDate,
+                                                  String endDate,
+                                                  Long recordCountMin,
+                                                  Long recordCountMax,
+                                                  Integer page,
+                                                  Integer size,
+                                                  String sort) {
         SearchCriteriaDTO criteria = new SearchCriteriaDTO();
         criteria.setFileId(fileId);
         criteria.setFilename(filename);
@@ -84,15 +126,7 @@ public class FileLoadController {
         criteria.setPage(page);
         criteria.setSize(size);
         criteria.setSort(sort);
-
-        return ResponseEntity.ok(fileLoadService.searchFileLoads(criteria));
-    }
-
-    @GetMapping("/overview")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @Operation(summary = "Get live dashboard overview metrics")
-    public ResponseEntity<DashboardOverviewDTO> getDashboardOverview() {
-        return ResponseEntity.ok(fileLoadService.getDashboardOverview());
+        return criteria;
     }
 
     private LocalDateTime parseDateTime(String value) {
