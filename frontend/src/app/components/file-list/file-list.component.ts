@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Subject, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { FileItem, PagedResult } from '../../models/file-load.model';
@@ -19,10 +20,12 @@ import { StatusUpdateComponent } from '../status-update/status-update.component'
   styleUrls: ['./file-list.component.scss']
 })
 export class FileListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['id', 'filename', 'uploadDate', 'status', 'recordCount', 'actions'];
+  displayedColumns = ['select', 'id', 'filename', 'uploadDate', 'status', 'recordCount', 'actions'];
   dataSource = new MatTableDataSource<FileItem>([]);
   total = 0;
   loading = false;
+  isBulkDeleting = false;
+  private readonly selectedIds = new Set<number>();
 
   criteria: SearchCriteria = { page: 0, size: 10, sort: 'uploadDate,desc' };
   private readonly destroy$ = new Subject<void>();
@@ -49,7 +52,11 @@ export class FileListComponent implements OnInit, OnDestroy {
     // Poll quickly so PENDING and PROCESSING transitions are visible in UI.
     timer(1000, 1000)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.fetch(false));
+      .subscribe(() => {
+        if (!this.isBulkDeleting) {
+          this.fetch(false);
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -74,6 +81,7 @@ export class FileListComponent implements OnInit, OnDestroy {
       next: (res: PagedResult<FileItem>) => {
         this.dataSource.data = res.items;
         this.total = res.total;
+        this.retainSelectionForVisibleRows();
         if (showLoader) {
           this.loading = false;
         }
@@ -143,14 +151,151 @@ export class FileListComponent implements OnInit, OnDestroy {
   }
 
   delete(row: FileItem) {
+    if (this.isBulkDeleting) {
+      return;
+    }
     if (!confirm(`Delete "${row.filename || row.name}"? This cannot be undone.`)) return;
     this.api.delete(row.id).subscribe({
       next: () => {
+        this.selectedIds.delete(Number(row.id));
         this.snack.open('File deleted', 'OK', { duration: 1500 });
         this.fetch(true);
       },
       error: () => this.snack.open('Delete failed', 'Dismiss', { duration: 3000 })
     });
+  }
+
+  isRowSelected(row: FileItem): boolean {
+    return this.selectedIds.has(Number(row.id));
+  }
+
+  toggleRowSelection(row: FileItem, checked: boolean): void {
+    const id = Number(row.id);
+    if (checked) {
+      this.selectedIds.add(id);
+    } else {
+      this.selectedIds.delete(id);
+    }
+  }
+
+  toggleSelectAllVisible(checked: boolean): void {
+    for (const row of this.dataSource.data) {
+      const id = Number(row.id);
+      if (checked) {
+        this.selectedIds.add(id);
+      } else {
+        this.selectedIds.delete(id);
+      }
+    }
+  }
+
+  allVisibleSelected(): boolean {
+    return this.dataSource.data.length > 0 && this.dataSource.data.every((row) => this.selectedIds.has(Number(row.id)));
+  }
+
+  someVisibleSelected(): boolean {
+    const selectedVisible = this.dataSource.data.filter((row) => this.selectedIds.has(Number(row.id))).length;
+    return selectedVisible > 0 && selectedVisible < this.dataSource.data.length;
+  }
+
+  selectedCount(): number {
+    return this.selectedIds.size;
+  }
+
+  async deleteSelected(): Promise<void> {
+    if (this.isBulkDeleting || this.selectedIds.size === 0) {
+      return;
+    }
+    if (!confirm(`Delete ${this.selectedIds.size} selected file(s)? This cannot be undone.`)) {
+      return;
+    }
+
+    this.isBulkDeleting = true;
+    this.loading = true;
+    let successCount = 0;
+    let failureCount = 0;
+
+    const ids = Array.from(this.selectedIds);
+    for (const id of ids) {
+      try {
+        await firstValueFrom(this.api.delete(id));
+        this.selectedIds.delete(id);
+        successCount++;
+      } catch {
+        failureCount++;
+      }
+    }
+
+    this.isBulkDeleting = false;
+    this.loading = false;
+    await this.refreshAfterBulkDelete(successCount, failureCount);
+  }
+
+  async deleteAllMatching(): Promise<void> {
+    if (this.isBulkDeleting || this.total === 0) {
+      return;
+    }
+    if (!confirm(`Delete ALL ${this.total} file(s) from current search result? This cannot be undone.`)) {
+      return;
+    }
+
+    this.isBulkDeleting = true;
+    this.loading = true;
+    let successCount = 0;
+    let failureCount = 0;
+
+    try {
+      const ids = await this.fetchAllMatchingIds();
+      for (const id of ids) {
+        try {
+          await firstValueFrom(this.api.delete(id));
+          this.selectedIds.delete(id);
+          successCount++;
+        } catch {
+          failureCount++;
+        }
+      }
+    } finally {
+      this.isBulkDeleting = false;
+      this.loading = false;
+    }
+
+    await this.refreshAfterBulkDelete(successCount, failureCount);
+  }
+
+  private async fetchAllMatchingIds(): Promise<number[]> {
+    const ids: number[] = [];
+    const pageSize = 200;
+    let page = 0;
+    let totalPages = 1;
+
+    while (page < totalPages) {
+      const criteria = { ...this.criteria, page, size: pageSize };
+      const res = await firstValueFrom(this.api.list(criteria));
+      res.items.forEach((item) => ids.push(Number(item.id)));
+      totalPages = Math.max(1, Math.ceil((res.total || 0) / pageSize));
+      page++;
+    }
+
+    return ids;
+  }
+
+  private async refreshAfterBulkDelete(successCount: number, failureCount: number): Promise<void> {
+    if (failureCount === 0) {
+      this.snack.open(`Deleted ${successCount} file(s)`, 'OK', { duration: 2500 });
+    } else {
+      this.snack.open(`Deleted ${successCount} file(s), ${failureCount} failed`, 'Dismiss', { duration: 3500 });
+    }
+    this.selectedIds.clear();
+    this.fetch(true);
+  }
+
+  private retainSelectionForVisibleRows(): void {
+    for (const id of Array.from(this.selectedIds)) {
+      if (!Number.isFinite(id)) {
+        this.selectedIds.delete(id);
+      }
+    }
   }
 
   fileName(row: FileItem): string {
