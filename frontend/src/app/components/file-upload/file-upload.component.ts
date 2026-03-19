@@ -22,16 +22,10 @@ interface UploadItem {
 export class FileUploadComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  readonly maxFileSizeBytes = 10 * 1024 * 1024;
-  readonly acceptedExtensions = ['.csv', '.txt', '.xml', '.xls', '.xlsx'];
-  readonly acceptedMimeTypes = [
-    'text/csv',
-    'text/plain',
-    'application/xml',
-    'text/xml',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
+  readonly maxFileSizeBytes = 20 * 1024 * 1024;
+ readonly acceptedExtensions = ['.csv'];
+
+ readonly acceptedMimeTypes = ['text/csv'];
 
   uploads: UploadItem[] = [];
   description = '';
@@ -42,7 +36,7 @@ export class FileUploadComponent {
   constructor(private api: FileLoadService, private snack: MatSnackBar) {}
 
   get acceptedFileHint(): string {
-    return `${this.acceptedExtensions.join(', ')} · max 10 MB`;
+    return `CSV only · max 20 MB`;
   }
 
   get isUploading(): boolean {
@@ -97,11 +91,11 @@ export class FileUploadComponent {
     const hasAllowedExtension = this.acceptedExtensions.some((ext) => lower.endsWith(ext));
     const hasAllowedMime = !file.type || this.acceptedMimeTypes.includes(file.type);
     if (!(hasAllowedExtension && hasAllowedMime)) {
-      this.snack.open(`Unsupported file type: ${file.name}`, 'Dismiss', { duration: 3500 });
+      this.snack.open(`Only CSV files are allowed: ${file.name}`, 'Dismiss', { duration: 3500 });
       return false;
     }
     if (file.size > this.maxFileSizeBytes) {
-      this.snack.open(`File is too large: ${file.name} (max 10 MB)`, 'Dismiss', { duration: 3500 });
+      this.snack.open(`File exceeds 20 MB limit: ${file.name}`, 'Dismiss', { duration: 3500 });
       return false;
     }
     return true;
