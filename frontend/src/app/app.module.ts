@@ -44,6 +44,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 // Interceptors
 import { AuthInterceptor } from './services/auth.interceptor';
@@ -94,7 +95,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     MatNativeDateModule,
     MatBadgeModule,
     MatFormFieldModule,
-    MatDividerModule
+    MatDividerModule,
+    MatCheckboxModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
