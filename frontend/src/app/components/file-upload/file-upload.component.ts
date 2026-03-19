@@ -8,6 +8,7 @@ interface UploadItem {
   file: File;
   progress: number;
   state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
+  selected?: boolean;
   sub?: Subscription;
   startedAt?: number;
   finishTimer?: ReturnType<typeof setTimeout>;
@@ -63,6 +64,10 @@ export class FileUploadComponent {
     return 'Ready to upload';
   }
 
+  get selectedCancelableCount(): number {
+    return this.uploads.filter((u) => u.selected && (u.state === 'queued' || u.state === 'uploading')).length;
+  }
+
   onFileSelected(ev: Event) {
     const target = ev.target as HTMLInputElement;
     const files = target.files;
@@ -105,7 +110,7 @@ export class FileUploadComponent {
   queueFiles(files: File[]) {
     for (const file of files) {
       if (!this.isValidFile(file)) continue;
-      this.uploads.push({ file, progress: 0, state: 'queued' });
+      this.uploads.push({ file, progress: 0, state: 'queued', selected: false });
     }
   }
 
@@ -166,8 +171,10 @@ export class FileUploadComponent {
     });
   }
 
-  cancelUpload(item: UploadItem) {
+  cancelUpload(item: UploadItem, options?: { silent?: boolean; continueQueue?: boolean }) {
     if (item.state !== 'uploading' && item.state !== 'queued') return;
+
+    const wasUploading = item.state === 'uploading';
 
     if (item.finishTimer) {
       clearTimeout(item.finishTimer);
@@ -178,10 +185,29 @@ export class FileUploadComponent {
     item.sub = undefined;
     item.state = 'canceled';
     item.progress = 0;
-    this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', { duration: 1500 });
+    item.selected = false;
+
+    if (!options?.silent) {
+      this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', { duration: 1500 });
+    }
 
     // Continue queue if an active upload was canceled.
-    this.startNextUpload();
+    if (options?.continueQueue !== false && wasUploading) {
+      this.startNextUpload();
+    }
+  }
+
+  cancelSelected() {
+    const selected = this.uploads.filter((u) => u.selected && (u.state === 'queued' || u.state === 'uploading'));
+    if (!selected.length) return;
+
+    const hadActive = selected.some((u) => u.state === 'uploading');
+    for (const item of selected) {
+      this.cancelUpload(item, { silent: true, continueQueue: false });
+    }
+
+    this.snack.open(`Canceled ${selected.length} file(s)`, 'OK', { duration: 1800 });
+    if (hadActive) this.startNextUpload();
   }
 
   clearDone() {
