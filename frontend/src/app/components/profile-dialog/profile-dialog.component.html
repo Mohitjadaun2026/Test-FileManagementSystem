@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="header">
         <img [src]="profileImage" class="avatar">
-        <h3>{{ currentUser?.name || 'User' }}</h3>
+        <h3>{{ currentUser?.name || currentUser?.username || 'User' }}</h3>
         <p>{{ currentUser?.email }}</p>
     </div>
 

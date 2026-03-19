@@ -20,16 +20,17 @@ export class ProfileDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<ProfileDialogComponent>  // ✅ IMPORTANT
   ) {}
 
-  ngOnInit(): void {
-    this.auth.currentUser$.subscribe(user => {
-      this.currentUser = user;
+ ngOnInit(): void {
+   this.auth.currentUser$.subscribe((user: User | null) => {
+     this.currentUser = user;
 
-      if (user?.id) {
-        const img = localStorage.getItem(`profile_image_${user.id}`);
-        if (img) this.profileImage = img;
-      }
-    });
-  }
+     if (user?.profileImage) {
+       this.profileImage = 'http://localhost:8080' + user.profileImage;
+     } else {
+       this.profileImage = 'assets/default-avatar.svg';
+     }
+   });
+ }
 
   // ✅ FIXED
   goToProfile() {

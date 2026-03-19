@@ -7,7 +7,7 @@ public class AuthResponseDTO {
     private String email;
     private String role;
     private String token;
-
+    private String profileImage;
     public Long getId() {
         return id;
     }
@@ -47,5 +47,14 @@ public class AuthResponseDTO {
     public void setToken(String token) {
         this.token = token;
     }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
 }
 

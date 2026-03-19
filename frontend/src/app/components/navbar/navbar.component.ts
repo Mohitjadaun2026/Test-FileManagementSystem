@@ -19,50 +19,40 @@ export class NavbarComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private dialog: MatDialog   // ✅ added
+    private dialog: MatDialog
   ) {}
 
 ngOnInit(): void {
-
-  // ✅ USER SUBSCRIPTION
-  this.auth.currentUser$.subscribe(user => {
+  this.auth.currentUser$.subscribe((user: User | null) => {
     this.isLoggedIn = !!user;
-    this.currentUser = user || null;
 
-    if (user) {
-      this.loadProfileImage();
+    // 🔥 ALWAYS reload latest user from localStorage
+    const storedUser = localStorage.getItem('fl_user');
+    this.currentUser = storedUser ? JSON.parse(storedUser) : user;
+
+    if (this.currentUser?.profileImage) {
+      this.profileImage =
+        'http://localhost:8080' +
+        this.currentUser.profileImage +
+        '?t=' +
+        new Date().getTime();
+    } else {
+      this.profileImage = 'assets/default-avatar.svg';
     }
   });
-
-  // ✅ PROFILE IMAGE LIVE UPDATE (SEPARATE)
-  this.auth.profileImage$.subscribe(img => {
-    this.profileImage = img;
-  });
 }
 
- loadProfileImage(): void {
-   if (this.currentUser?.id) {
-     const storedImage = localStorage.getItem(`profile_image_${this.currentUser.id}`);
-
-     if (storedImage) {
-       this.profileImage = storedImage;
-
-       // 🔥 sync with global state
-       this.auth.updateProfileImage(storedImage);
-     }
-   }
- }
-openProfileDialog(): void {
-  this.dialog.open(ProfileDialogComponent, {
-    width: '320px',
-    position: {
-      top: '70px',
-      right: '20px'
-    },
-    panelClass: 'profile-dialog-panel',
-    backdropClass: 'transparent-backdrop'
-  });
-}
+  openProfileDialog(): void {
+    this.dialog.open(ProfileDialogComponent, {
+      width: '320px',
+      position: {
+        top: '70px',
+        right: '20px'
+      },
+      panelClass: 'profile-dialog-panel',
+      backdropClass: 'transparent-backdrop'
+    });
+  }
 
   logout(): void {
     this.auth.logout();
