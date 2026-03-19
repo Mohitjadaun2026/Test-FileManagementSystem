@@ -44,9 +44,12 @@ export class FileListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    timer(0, 10000)
+    this.fetch(true);
+
+    // Poll quickly so PENDING and PROCESSING transitions are visible in UI.
+    timer(1000, 1000)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.fetch());
+      .subscribe(() => this.fetch(false));
   }
 
   ngOnDestroy(): void {
@@ -60,20 +63,26 @@ export class FileListComponent implements OnInit, OnDestroy {
       ...c,
       page: 0
     };
-    this.fetch();
+    this.fetch(true);
   }
 
-  fetch() {
-    this.loading = true;
+  fetch(showLoader = true) {
+    if (showLoader) {
+      this.loading = true;
+    }
     this.api.list(this.criteria).subscribe({
       next: (res: PagedResult<FileItem>) => {
         this.dataSource.data = res.items;
         this.total = res.total;
-        this.loading = false;
+        if (showLoader) {
+          this.loading = false;
+        }
       },
       error: (err) => {
         this.snack.open(err?.error?.message ?? 'Failed to load files', 'Dismiss', { duration: 3500 });
-        this.loading = false;
+        if (showLoader) {
+          this.loading = false;
+        }
       }
     });
   }
@@ -81,7 +90,7 @@ export class FileListComponent implements OnInit, OnDestroy {
   pageChange(ev: PageEvent) {
     this.criteria.page = ev.pageIndex;
     this.criteria.size = ev.pageSize;
-    this.fetch();
+    this.fetch(true);
   }
 
   sortChange(ev: Sort) {
@@ -95,7 +104,7 @@ export class FileListComponent implements OnInit, OnDestroy {
     };
     this.criteria.sort = `${fieldMap[ev.active] || ev.active},${direction}`;
     this.criteria.page = 0;
-    this.fetch();
+    this.fetch(true);
   }
 
   view(row: FileItem) {
@@ -111,7 +120,7 @@ export class FileListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe((updated) => {
-        if (updated) this.fetch();
+        if (updated) this.fetch(true);
       });
   }
 
@@ -138,7 +147,7 @@ export class FileListComponent implements OnInit, OnDestroy {
     this.api.delete(row.id).subscribe({
       next: () => {
         this.snack.open('File deleted', 'OK', { duration: 1500 });
-        this.fetch();
+        this.fetch(true);
       },
       error: () => this.snack.open('Delete failed', 'Dismiss', { duration: 3000 })
     });

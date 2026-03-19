@@ -12,20 +12,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class RecordCountUtil {
 
+    private static final List<String> EXPECTED_HEADER = List.of(
+            "tradeId", "clientId", "stockSymbol", "quantity", "price", "tradeType"
+    );
+
     public ProcessingResult analyzeFile(Path filePath) throws IOException {
         String fileName = filePath.getFileName().toString().toLowerCase();
+
+        if (!fileName.endsWith(".csv")) {
+            return ProcessingResult.failed(0, List.of("Invalid file type. Only CSV files are accepted."));
+        }
+
         String content = Files.readString(filePath, StandardCharsets.UTF_8);
-
-        if (fileName.endsWith(".csv")) {
-            return analyzeCsv(content);
+        if (content.isBlank()) {
+            return ProcessingResult.failed(0, List.of("File is empty."));
         }
 
-        if (fileName.endsWith(".txt") || fileName.endsWith(".xml")) {
-            long count = content.lines().filter(line -> !line.isBlank()).count();
-            return ProcessingResult.success(count);
-        }
-
-        return ProcessingResult.success(0);
+        return analyzeCsv(content);
     }
 
     public long countRecords(Path filePath) throws IOException {
@@ -42,24 +45,101 @@ public class RecordCountUtil {
         }
 
         if (rows.isEmpty()) {
-            return errors.isEmpty() ? ProcessingResult.success(0) : ProcessingResult.failed(0, errors);
+            errors.add("File is empty.");
+            return ProcessingResult.failed(0, errors);
         }
 
-        int dataStartIndex = rows.size() > 1 && hasHeader(rows.get(0), rows.get(1)) ? 1 : 0;
-        long recordCount = rows.size() - dataStartIndex;
+        List<String> header = splitCsvCells(rows.get(0));
+        if (!header.equals(EXPECTED_HEADER)) {
+            errors.add("Invalid header. Expected: tradeId,clientId,stockSymbol,quantity,price,tradeType");
+            return ProcessingResult.failed(0, errors);
+        }
 
-        if (recordCount > 0) {
-            int expectedColumns = splitCsvCells(rows.get(dataStartIndex)).size();
-            for (int i = dataStartIndex; i < rows.size(); i++) {
-                int actualColumns = splitCsvCells(rows.get(i)).size();
-                if (actualColumns != expectedColumns) {
-                    errors.add("Line " + (i + 1) + " has " + actualColumns
-                            + " columns, expected " + expectedColumns + ".");
-                }
+        int validRecords = 0;
+        for (int i = 1; i < rows.size(); i++) {
+            String row = rows.get(i);
+            if (row.isBlank()) {
+                continue;
             }
+
+            List<String> cells = splitCsvCells(row);
+            int lineNo = i + 1;
+
+            if (cells.size() != 6) {
+                errors.add("Invalid column count at line " + lineNo + ": expected 6, found " + cells.size());
+                continue;
+            }
+
+            String tradeId = cells.get(0).trim();
+            String clientId = cells.get(1).trim();
+            String stockSymbol = cells.get(2).trim();
+            String quantityText = cells.get(3).trim();
+            String priceText = cells.get(4).trim();
+            String tradeTypeText = cells.get(5).trim();
+
+            if (tradeId.isEmpty()) {
+                errors.add("Empty tradeId at line " + lineNo);
+                continue;
+            }
+            if (clientId.isEmpty()) {
+                errors.add("Empty clientId at line " + lineNo);
+                continue;
+            }
+            if (stockSymbol.isEmpty()) {
+                errors.add("Empty stockSymbol at line " + lineNo);
+                continue;
+            }
+            if (quantityText.isEmpty()) {
+                errors.add("Empty quantity at line " + lineNo);
+                continue;
+            }
+            if (priceText.isEmpty()) {
+                errors.add("Empty price at line " + lineNo);
+                continue;
+            }
+            if (tradeTypeText.isEmpty()) {
+                errors.add("Empty tradeType at line " + lineNo);
+                continue;
+            }
+
+            int quantity;
+            try {
+                quantity = Integer.parseInt(quantityText);
+            } catch (NumberFormatException ex) {
+                errors.add("Invalid quantity at line " + lineNo);
+                continue;
+            }
+            if (quantity <= 0) {
+                errors.add("Invalid quantity at line " + lineNo + ": must be greater than 0");
+                continue;
+            }
+
+            double price;
+            try {
+                price = Double.parseDouble(priceText);
+            } catch (NumberFormatException ex) {
+                errors.add("Invalid price at line " + lineNo);
+                continue;
+            }
+            if (price <= 0) {
+                errors.add("Invalid price at line " + lineNo + ": must be greater than 0");
+                continue;
+            }
+
+            String tradeType = tradeTypeText.toUpperCase();
+            if (!"BUY".equals(tradeType) && !"SELL".equals(tradeType)) {
+                errors.add("Invalid tradeType at line " + lineNo + ": must be BUY or SELL");
+                continue;
+            }
+
+            validRecords++;
         }
 
-        return errors.isEmpty() ? ProcessingResult.success(recordCount) : ProcessingResult.failed(recordCount, errors);
+        if (!errors.isEmpty()) {
+            return ProcessingResult.failed(0, errors);
+        }
+
+        return ProcessingResult.success(validRecords);
     }
 
     private CsvReadResult splitCsvRows(String content) {
@@ -136,25 +216,6 @@ public class RecordCountUtil {
         return cells;
     }
 
-    private boolean hasHeader(String firstRow, String secondRow) {
-        List<String> first = splitCsvCells(firstRow);
-        List<String> second = splitCsvCells(secondRow);
-        if (first.size() != second.size() || first.isEmpty()) {
-            return false;
-        }
-
-        int matches = 0;
-        for (int i = 0; i < first.size(); i++) {
-            if (!isNumeric(first.get(i)) && isNumeric(second.get(i))) {
-                matches++;
-            }
-        }
-        return matches >= Math.max(1, first.size() / 2);
-    }
-
-    private boolean isNumeric(String value) {
-        return value.matches("[-+]?\\d+(\\.\\d+)?");
-    }
 
     private record CsvReadResult(List<String> rows, boolean unbalancedQuotes) {
     }

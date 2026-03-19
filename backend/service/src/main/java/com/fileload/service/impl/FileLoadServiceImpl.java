@@ -43,10 +43,27 @@ public class FileLoadServiceImpl implements FileLoadService {
 
     @Override
     public FileLoadResponseDTO createFileLoad(MultipartFile file) {
+        String originalFilename = normalizeOriginalFilename(file.getOriginalFilename());
+
+        if (!originalFilename.toLowerCase().endsWith(".csv")) {
+            return createFailedUploadResponse(file, originalFilename,
+                    "Invalid file type. Only CSV files are accepted.");
+        }
+
+        if (file.isEmpty()) {
+            return createFailedUploadResponse(file, originalFilename,
+                    "File is empty.");
+        }
+
+        long maxSizeBytes = 20L * 1024 * 1024;
+        if (file.getSize() > maxSizeBytes) {
+            return createFailedUploadResponse(file, originalFilename,
+                    "File size exceeded. Maximum allowed is 20MB.");
+        }
+
         try {
             Path uploadsDir = Path.of("uploads");
             Files.createDirectories(uploadsDir);
-            String originalFilename = normalizeOriginalFilename(file.getOriginalFilename());
             Path savedFile = resolveUniquePath(uploadsDir, originalFilename);
             Files.copy(file.getInputStream(), savedFile, StandardCopyOption.REPLACE_EXISTING);
 
@@ -67,6 +84,21 @@ public class FileLoadServiceImpl implements FileLoadService {
         } catch (IOException ex) {
             throw new IllegalStateException("Unable to store uploaded file", ex);
         }
+    }
+
+    private FileLoadResponseDTO createFailedUploadResponse(MultipartFile file, String filename, String errorMessage) {
+        FileLoad failed = new FileLoad();
+        failed.setFilename(filename);
+        failed.setFileType(file.getContentType() == null ? "application/octet-stream" : file.getContentType());
+        failed.setFileSize(file.getSize());
+        failed.setLoadDate(LocalDateTime.now());
+        failed.setStatus(FileStatus.FAILED);
+        failed.setRecordCount(0L);
+        failed.setErrors(errorMessage);
+        failed.setArchived(false);
+        failed.setStoragePath("");
+
+        return fileLoadMapper.toDto(fileLoadRepository.saveAndFlush(failed));
     }
 
     private String normalizeOriginalFilename(String originalFilename) {

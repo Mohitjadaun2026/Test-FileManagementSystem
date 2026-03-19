@@ -17,6 +17,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class BatchJobLauncherService {
 
+    private static final long PENDING_VISIBLE_DELAY_MS = 10000L;
+
     private final JobLauncher jobLauncher;
     private final Job fileProcessingJob;
     private final FileLoadRepository fileLoadRepository;
@@ -35,6 +37,12 @@ public class BatchJobLauncherService {
 
     @Async
     public void launch(Long fileLoadId) {
+        try {
+            // Keep PENDING visible briefly before moving to PROCESSING.
+            Thread.sleep(PENDING_VISIBLE_DELAY_MS);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
         launchInternal(fileLoadId, 0);
     }
 
@@ -44,7 +52,7 @@ public class BatchJobLauncherService {
                 try {
                     JobParameters params = new JobParametersBuilder()
                             .addLong("fileLoadId", fileLoadId)
-                            .addLong("startAt", System.currentTimeMillis())
+                            .addLong("uniqueRunId", System.nanoTime())
                             .toJobParameters();
                     jobLauncher.run(fileProcessingJob, params);
                 } catch (Exception ex) {
