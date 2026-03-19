@@ -20,16 +20,38 @@
   <div class="table-card">
 
     <div class="bulk-toolbar" *ngIf="dataSource.data.length > 0">
+
       <div class="bulk-info">
-        <span>{{ selectedCount() }} selected</span>
+    <span *ngIf="selectedCount() === 0">
+      {{ total }} files
+    </span>
+
+        <span *ngIf="selectedCount() > 0">
+      <strong>{{ selectedCount() }}</strong> selected
+    </span>
       </div>
+
       <div class="bulk-actions">
-        <button mat-stroked-button color="warn" (click)="deleteSelected()" [disabled]="selectedCount() === 0 || isBulkDeleting">
+
+        <!-- Show only when needed -->
+        <button
+                *ngIf="selectedCount() > 0"
+                mat-flat-button
+                color="warn"
+                (click)="deleteSelected()">
+
+          <mat-icon>delete</mat-icon>
           Delete Selected
         </button>
-        <button mat-raised-button color="warn" (click)="deleteAllMatching()" [disabled]="total === 0 || isBulkDeleting">
+
+        <!-- Optional -->
+        <button
+                mat-stroked-button
+                (click)="deleteAllMatching()">
+
           Delete All
         </button>
+
       </div>
     </div>
 
