@@ -77,7 +77,7 @@ export class FileListComponent implements OnInit, OnDestroy {
     if (showLoader) {
       this.loading = true;
     }
-    this.api.list(this.criteria).subscribe({
+    this.api.myList(this.criteria).subscribe({
       next: (res: PagedResult<FileItem>) => {
         this.dataSource.data = res.items;
         this.total = res.total;
@@ -271,7 +271,7 @@ export class FileListComponent implements OnInit, OnDestroy {
 
     while (page < totalPages) {
       const criteria = { ...this.criteria, page, size: pageSize };
-      const res = await firstValueFrom(this.api.list(criteria));
+      const res = await firstValueFrom(this.api.myList(criteria));
       res.items.forEach((item) => ids.push(Number(item.id)));
       totalPages = Math.max(1, Math.ceil((res.total || 0) / pageSize));
       page++;

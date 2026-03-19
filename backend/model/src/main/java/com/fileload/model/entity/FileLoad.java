@@ -45,6 +45,12 @@ public class FileLoad {
     @Column(nullable = false)
     private String storagePath;
 
+    @Column
+    private Long uploadedById;
+
+    @Column(length = 255)
+    private String uploadedBy;
+
     public Long getId() {
         return id;
     }
@@ -139,6 +145,22 @@ public class FileLoad {
 
     public void setStoragePath(String storagePath) {
         this.storagePath = storagePath;
+    }
+
+    public Long getUploadedById() {
+        return uploadedById;
+    }
+
+    public void setUploadedById(Long uploadedById) {
+        this.uploadedById = uploadedById;
+    }
+
+    public String getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(String uploadedBy) {
+        this.uploadedBy = uploadedBy;
     }
 }
 

@@ -19,6 +19,8 @@ public class FileLoadMapper {
         dto.setRecordCount(entity.getRecordCount());
         dto.setErrors(entity.getErrors());
         dto.setUploadDate(entity.getLoadDate());
+        dto.setUploadedById(entity.getUploadedById());
+        dto.setUploadedBy(entity.getUploadedBy());
         dto.setDescription(entity.getDescription());
         dto.setTags(entity.getTags() == null || entity.getTags().isBlank()
                 ? Collections.emptyList()
