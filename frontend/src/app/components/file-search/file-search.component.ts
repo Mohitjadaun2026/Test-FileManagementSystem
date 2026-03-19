@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { SearchCriteria } from '../../models/search-criteria.model';
 
 @Component({
@@ -7,8 +8,10 @@ import { SearchCriteria } from '../../models/search-criteria.model';
   templateUrl: './file-search.component.html',
   styleUrls: ['./file-search.component.scss']
 })
-export class FileSearchComponent {
+export class FileSearchComponent implements OnInit, OnDestroy {
   @Output() search = new EventEmitter<SearchCriteria>();
+  isFilterActive = false;
+  private formChangesSub?: Subscription;
 
   form = this.fb.group({
     fileId: [''],
@@ -21,6 +24,22 @@ export class FileSearchComponent {
   });
 
   constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.formChangesSub = this.form.valueChanges.subscribe(() => {
+      const wasFilterActive = this.isFilterActive;
+      this.isFilterActive = this.hasAnyFilterValue();
+
+      // If user manually clears all filters, restore the default unfiltered list automatically.
+      if (wasFilterActive && !this.isFilterActive) {
+        this.emitDefaultSearch();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.formChangesSub?.unsubscribe();
+  }
 
   private toLocalDateTime(value: unknown, endOfDay = false): string | undefined {
     if (!value) return undefined;
@@ -38,6 +57,7 @@ export class FileSearchComponent {
   }
 
   submit() {
+    this.isFilterActive = this.hasAnyFilterValue();
     const { fileId, filename, status, startDate, endDate, recordCountMin, recordCountMax } = this.form.value;
     const min = recordCountMin !== '' && recordCountMin !== null ? Number(recordCountMin) : undefined;
     const max = recordCountMax !== '' && recordCountMax !== null ? Number(recordCountMax) : undefined;
@@ -57,6 +77,7 @@ export class FileSearchComponent {
   }
 
   reset() {
+    this.isFilterActive = false;
     this.form.reset({
       fileId: '',
       filename: '',
@@ -66,6 +87,10 @@ export class FileSearchComponent {
       recordCountMin: '',
       recordCountMax: ''
     });
+    this.emitDefaultSearch();
+  }
+
+  private emitDefaultSearch(): void {
     this.search.emit({
       fileId: '',
       filename: '',
@@ -75,6 +100,17 @@ export class FileSearchComponent {
       recordCountMin: undefined,
       recordCountMax: undefined,
       page: 0
+    });
+  }
+
+  private hasAnyFilterValue(): boolean {
+    const value = this.form.value;
+    return Object.values(value).some((fieldValue) => {
+      if (fieldValue === null || fieldValue === undefined) {
+        return false;
+      }
+      const normalized = String(fieldValue).trim();
+      return normalized.length > 0;
     });
   }
 }
