@@ -36,40 +36,43 @@
           <span class="header-badge">LIVE</span>
         </div>
 
+        <p class="live-note" *ngIf="loadingOverview">Fetching live metrics...</p>
+        <p class="live-note error-note" *ngIf="overviewError">{{ overviewError }}</p>
+
         <div class="metrics-grid">
           <div class="metric-card">
-            <strong>1,250</strong>
+            <strong>{{ formatCount(overview?.totalUploads) }}</strong>
             <span>Total uploads</span>
-            <em class="metric-trend up">+8% vs last cycle</em>
+            <em class="metric-trend neutral">Live global count</em>
           </div>
           <div class="metric-card">
-            <strong>24</strong>
+            <strong>{{ formatCount(overview?.inProcessing) }}</strong>
             <span>In processing</span>
-            <em class="metric-trend neutral">Stable throughput window</em>
+            <em class="metric-trend neutral">Active pipeline right now</em>
           </div>
           <div class="metric-card">
-            <strong>97.6%</strong>
+            <strong>{{ formatRate(overview?.successRate) }}</strong>
             <span>Success rate</span>
-            <em class="metric-trend up">+1.2% quality improvement</em>
+            <em class="metric-trend up">Based on all uploads</em>
           </div>
           <div class="metric-card">
-            <strong>03</strong>
+            <strong>{{ formatCount(overview?.exceptionsToday) }}</strong>
             <span>Exceptions today</span>
-            <em class="metric-trend down">-2 vs previous day</em>
+            <em class="metric-trend down">Failed uploads since midnight</em>
           </div>
         </div>
 
         <div class="status-stack">
           <div class="status-row pending-row">
-            <span>Pending validations</span>
+            <span>Pending validations ({{ formatCount(overview?.pendingCount) }})</span>
             <span class="status-pill pending">PENDING</span>
           </div>
           <div class="status-row processing-row">
-            <span>Batch execution window</span>
+            <span>Batch execution window ({{ formatCount(overview?.processingCount) }})</span>
             <span class="status-pill processing">PROCESSING</span>
           </div>
           <div class="status-row success-row">
-            <span>Completed reconciliations</span>
+            <span>Completed reconciliations ({{ formatCount(overview?.successCount) }})</span>
             <span class="status-pill success">SUCCESS</span>
           </div>
         </div>

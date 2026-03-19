@@ -1,0 +1,4 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD9401,CLT941,IBM,4,191.80,HOLD
+TRD9402,CLT942,ADBE,7,531.65,SWAP
+

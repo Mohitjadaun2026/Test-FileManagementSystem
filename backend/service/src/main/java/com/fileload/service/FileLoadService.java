@@ -1,5 +1,6 @@
 package com.fileload.service;
 
+import com.fileload.model.dto.DashboardOverviewDTO;
 import com.fileload.model.dto.FileLoadResponseDTO;
 import com.fileload.model.dto.SearchCriteriaDTO;
 import com.fileload.model.dto.UpdateMetadataRequestDTO;
@@ -25,6 +26,8 @@ public interface FileLoadService {
     FileLoadResponseDTO retryFileLoad(Long id);
 
     byte[] downloadFile(Long id);
+
+    DashboardOverviewDTO getDashboardOverview();
 }
 
 

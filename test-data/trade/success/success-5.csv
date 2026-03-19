@@ -1,0 +1,5 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD5001,CLT401,META,11,498.35,BUY
+TRD5002,CLT402,CRM,5,278.25,SELL
+TRD5003,CLT403,INTC,14,42.10,BUY
+

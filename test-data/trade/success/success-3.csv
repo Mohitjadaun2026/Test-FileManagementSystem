@@ -1,0 +1,5 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD3001,CLT201,INFY,20,18.45,BUY
+TRD3002,CLT202,TCS,12,44.90,SELL
+TRD3003,CLT203,WIPRO,15,6.72,BUY
+
