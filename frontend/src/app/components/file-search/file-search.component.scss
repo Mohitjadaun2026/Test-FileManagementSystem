@@ -4,158 +4,143 @@
   border: 1px solid rgba(15, 23, 42, 0.07);
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
-  padding: 14px 18px;
+  padding: 10px 14px;
+  width: 100%;
 }
 
-/* ---- Single compact row ---- */
+/* Force single row and prevent stretching */
 .search-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Forces everything on one line */
+  justify-content: flex-start; /* Keeps items to the left */
 }
 
-/* ---- Field widths ---- */
-.f-id     { flex: 1 1 110px; min-width: 0; }
-.f-search { flex: 2 1 220px; min-width: 0; }
-.f-status { flex: 1 1 140px; min-width: 0; }
-.f-mime   { flex: 1 1 90px;  min-width: 0; }
-.f-date   { flex: 1 1 150px; min-width: 0; }
-.f-record { flex: 1 1 120px; min-width: 0; }
+/* ---- Fixed Field Widths (Anti-Stretching) ---- */
+.f-id     { flex: 0 0 100px; }
+.f-search { flex: 0 1 220px; } /* Filename can shrink if needed, but won't over-stretch */
+.f-status { flex: 0 0 130px; }
+.f-mime   { flex: 0 0 90px;  }
+.f-date   { flex: 0 0 155px; }
+.f-record { flex: 0 0 125px; }
 
-/* ---- Global field size reduction ---- */
+/* ---- Global Material Field Overrides ---- */
 .search-bar mat-form-field {
-  font-size: 0.93rem;
+  font-size: 0.90rem;
   --mat-form-field-subscript-text-size: 0px;
 }
 
-/* Remove the big bottom hint/error margin entirely */
+/* Remove bottom margin/hint area entirely */
 ::ng-deep .search-bar-wrap .mat-mdc-form-field-subscript-wrapper {
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
+  display: none !important;
 }
 
-/* Shrink the inner text-field wrapper height */
+/* Uniform 44px height for all inputs */
 ::ng-deep .search-bar-wrap .mat-mdc-text-field-wrapper {
   background: #f8fafc !important;
   border-radius: 8px !important;
   padding: 0 10px !important;
+  height: 44px !important;
 }
 
-/* Reduce top/bottom padding inside the input row */
+/* Center text vertically */
 ::ng-deep .search-bar-wrap .mat-mdc-form-field-infix {
-  padding-top: 13px !important;
-  padding-bottom: 13px !important;
-  min-height: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  min-height: 44px !important;
 }
 
-/* Tighten the floating label position */
+/* Vertical label centering */
 ::ng-deep .search-bar-wrap .mdc-floating-label {
-  top: 50% !important;
+  top: 22px !important;
   transform: translateY(-50%) !important;
-  font-size: 0.93rem !important;
+  font-size: 0.90rem !important;
 }
 
 ::ng-deep .search-bar-wrap .mdc-floating-label--float-above {
-  top: 0 !important;
-  transform: translateY(-45%) scale(0.75) !important;
+  transform: translateY(-130%) scale(0.75) !important;
 }
 
-/* Outline border colour */
+/* Consistent border color */
 ::ng-deep .search-bar-wrap .mdc-text-field--outlined .mdc-notched-outline__leading,
 ::ng-deep .search-bar-wrap .mdc-text-field--outlined .mdc-notched-outline__notch,
 ::ng-deep .search-bar-wrap .mdc-text-field--outlined .mdc-notched-outline__trailing {
-  border-color: rgba(0, 151, 167, 0.28) !important;
+  border-color: rgba(0, 151, 167, 0.2) !important;
 }
 
-::ng-deep .search-bar-wrap .mdc-text-field--focused .mdc-notched-outline__leading,
-::ng-deep .search-bar-wrap .mdc-text-field--focused .mdc-notched-outline__notch,
-::ng-deep .search-bar-wrap .mdc-text-field--focused .mdc-notched-outline__trailing {
-  border-color: #0097a7 !important;
-  border-width: 1.5px !important;
-}
-
-/* Input text size */
-::ng-deep .search-bar-wrap input.mat-mdc-input-element,
-::ng-deep .search-bar-wrap .mat-mdc-select-value-text {
-  font-size: 0.93rem !important;
-  line-height: 1.4 !important;
-}
-
-/* Shrink the datepicker calendar icon */
-::ng-deep .search-bar-wrap .mat-mdc-icon-button.mat-mdc-button-base {
-  width: 36px !important;
-  height: 36px !important;
-  padding: 6px !important;
-  font-size: 20px !important;
-}
-
-::ng-deep .search-bar-wrap .mat-mdc-icon-button svg,
-::ng-deep .search-bar-wrap .mat-mdc-icon-button .mat-icon {
-  width: 20px !important;
-  height: 20px !important;
-  font-size: 20px !important;
-}
-
-/* Shrink select arrow */
-::ng-deep .search-bar-wrap .mat-mdc-select-arrow-wrapper {
-  transform: translateY(0) !important;
-  height: 14px !important;
-}
-
-/* ---- Buttons ---- */
+/* ---- Buttons (Matching the 44px height) ---- */
 .btn-filter,
 .btn-reset {
-  height: 46px !important;
-  line-height: 46px !important;
+  height: 44px !important;
+  line-height: 44px !important;
   border-radius: 8px !important;
   font-weight: 700 !important;
-  font-size: 0.9rem !important;
+  font-size: 0.82rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
   white-space: nowrap;
   flex-shrink: 0;
-  align-self: center;
-  transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+  padding: 0 18px !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent !important;
 }
 
+/* Filter: Neutral State */
 .btn-filter {
   background: #ffffff !important;
   color: #334155 !important;
-  border: 1px solid rgba(148, 163, 184, 0.5) !important;
-  padding: 0 16px !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
 .btn-filter:hover {
+  background: #f8fafc !important;
+  border-color: #0097a7 !important;
+  color: #0097a7 !important;
   transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.16) !important;
 }
 
+/* Filter: Active State */
 .btn-filter.btn-filter--active {
   background: linear-gradient(135deg, #0097a7, #6a1b9a) !important;
   color: #ffffff !important;
-  border-color: transparent !important;
-  box-shadow: 0 3px 12px rgba(0,151,167,0.26) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 151, 167, 0.3) !important;
 }
 
-.btn-filter.btn-filter--active:hover,
-.btn-filter.btn-filter--active:focus-visible {
-  box-shadow: 0 6px 18px rgba(0,151,167,0.34) !important;
-}
-
+/* Reset: Minimal State */
 .btn-reset {
   color: #64748b !important;
-  border-color: rgba(100,116,139,0.35) !important;
-  padding: 0 12px !important;
-  background: transparent !important;
+  background: #f1f5f9 !important;
+  margin-left: 2px;
 }
 
-.btn-reset:hover { background: rgba(100,116,139,0.06) !important; }
+.btn-reset:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
 
-/* ---- Responsive ---- */
-@media (max-width: 700px) {
-  .search-bar { flex-wrap: wrap; }
-  .f-id, .f-search, .f-status, .f-date, .f-record { flex: 1 1 calc(50% - 4px); }
-  .btn-filter, .btn-reset { flex: 1 1 calc(50% - 4px); justify-content: center; }
+/* Icon Support */
+::ng-deep .search-bar-wrap .mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-right: 4px;
+}
+
+/* Responsive: Enable horizontal scrolling for mobile if needed */
+@media (max-width: 1100px) {
+  .search-bar-wrap {
+    overflow-x: auto;
+  }
+  .search-bar {
+    width: max-content;
+    padding-bottom: 4px;
+  }
 }
