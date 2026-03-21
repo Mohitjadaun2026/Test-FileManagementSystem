@@ -3,6 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -11,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent {
   loading = false;
+  oauthLoading = false;
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -39,5 +41,10 @@ export class LoginComponent {
         this.loading = false;
       }
     });
+  }
+
+  loginWithGoogle() {
+    this.oauthLoading = true;
+    window.location.href = `${environment.apiBaseUrl}/auth/oauth2/google`;
   }
 }
