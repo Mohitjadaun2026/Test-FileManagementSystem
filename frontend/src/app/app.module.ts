@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -8,6 +9,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 // Components
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
@@ -15,8 +17,11 @@ import { FileListComponent } from './components/file-list/file-list.component';
 import { FileSearchComponent } from './components/file-search/file-search.component';
 import { FileDetailsComponent } from './components/file-details/file-details.component';
 import { StatusUpdateComponent } from './components/status-update/status-update.component';
-import { NavbarComponent } from './components/navbar/navbar.component'; // <-- added
+import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { ProfileDialogComponent } from './components/profile-dialog/profile-dialog.component'; // ✅ ADD THIS
+import { OauthCallbackComponent } from './components/oauth-callback/oauth-callback.component';
 
 // Angular Material modules
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -38,6 +43,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 // Interceptors
 import { AuthInterceptor } from './services/auth.interceptor';
@@ -45,6 +53,7 @@ import { AuthInterceptor } from './services/auth.interceptor';
 @NgModule({
   declarations: [
     AppComponent,
+    DashboardComponent,
     LoginComponent,
     RegisterComponent,
     FileUploadComponent,
@@ -52,11 +61,15 @@ import { AuthInterceptor } from './services/auth.interceptor';
     FileSearchComponent,
     FileDetailsComponent,
     StatusUpdateComponent,
-    NavbarComponent ,
-    FooterComponent
+    NavbarComponent,
+    FooterComponent,
+    ProfileComponent,
+    ProfileDialogComponent,   // ✅ IMPORTANT
+    OauthCallbackComponent
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     BrowserAnimationsModule,
     HttpClientModule,
     FormsModule,
@@ -82,11 +95,17 @@ import { AuthInterceptor } from './services/auth.interceptor';
     MatTooltipModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatFormFieldModule,
+    MatDividerModule,
+    MatCheckboxModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { verticalPosition: 'top', panelClass: ['snack-top-offset'] } }
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: { verticalPosition: 'top', panelClass: ['snack-top-offset'] }
+    }
   ],
   bootstrap: [AppComponent]
 })

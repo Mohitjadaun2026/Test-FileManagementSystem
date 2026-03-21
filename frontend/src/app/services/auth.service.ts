@@ -4,10 +4,10 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { User } from '../models/user.model';
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly KEY = 'fl_user';
+
   private currentUserSubject = new BehaviorSubject<User | null>(this.loadUser());
   currentUser$ = this.currentUserSubject.asObservable();
 
@@ -27,7 +27,13 @@ export class AuthService {
     else localStorage.removeItem(this.KEY);
   }
 
-  login(payload: { email: string; password: string }): Observable<User> {
+  // ✅ NEW METHOD (IMPORTANT)
+  updateUser(user: User) {
+    this.saveUser(user);
+    this.currentUserSubject.next(user);
+  }
+
+  login(payload: { login: string; password: string }): Observable<User> {
     return this.http.post<User>(`${environment.apiBaseUrl}/auth/login`, payload).pipe(
       tap((user) => {
         this.saveUser(user);
@@ -49,7 +55,6 @@ export class AuthService {
   logout() {
     this.saveUser(null);
     this.currentUserSubject.next(null);
-
     this.router.navigate(['/']);
   }
 
@@ -59,5 +64,10 @@ export class AuthService {
 
   getToken(): string | null {
     return this.currentUserSubject.value?.token ?? null;
+  }
+
+  // ✅ FIXED (no hardcoded URL)
+  uploadProfileImage(formData: FormData) {
+    return this.http.post(`${environment.apiBaseUrl}/auth/upload-profile`, formData);
   }
 }

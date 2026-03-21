@@ -13,6 +13,8 @@ public class FileLoadResponseDTO {
     private Long recordCount;
     private String errors;
     private LocalDateTime uploadDate;
+    private Long uploadedById;
+    private String uploadedBy;
     private String description;
     private List<String> tags;
 
@@ -78,6 +80,22 @@ public class FileLoadResponseDTO {
 
     public void setUploadDate(LocalDateTime uploadDate) {
         this.uploadDate = uploadDate;
+    }
+
+    public Long getUploadedById() {
+        return uploadedById;
+    }
+
+    public void setUploadedById(Long uploadedById) {
+        this.uploadedById = uploadedById;
+    }
+
+    public String getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(String uploadedBy) {
+        this.uploadedBy = uploadedBy;
     }
 
     public String getDescription() {

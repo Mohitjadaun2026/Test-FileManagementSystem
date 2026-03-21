@@ -5,6 +5,7 @@ export interface FileItem {
   name: string;
   size: number;
   mimeType: string;
+  uploadedById?: string | number;
   uploadedBy: string;
   uploadedAt: string;
   status: FileStatus;

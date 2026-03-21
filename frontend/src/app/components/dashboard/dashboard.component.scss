@@ -314,9 +314,50 @@ body, html {
   font-size: 0.72rem;
 }
 
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.42);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+}
+
+.header-badge.live-pulse {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #dc2626;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  animation: livePulse 1.4s infinite;
+}
+
+.header-badge.live-pulse::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
 .header-badge.subtle {
   background: rgba(106, 27, 154, 0.10);
   color: #6a1b9a;
+}
+
+.live-note {
+  margin: -6px 0 12px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.error-note {
+  color: #b91c1c;
 }
 
 .metrics-grid {

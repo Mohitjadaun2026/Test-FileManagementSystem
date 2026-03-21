@@ -1,0 +1,4 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD9101,CLT911,AAPL,10,189.50,BUY
+TRD9102,,MSFT,5,320.25,SELL
+

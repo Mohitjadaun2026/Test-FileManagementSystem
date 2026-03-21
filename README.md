@@ -1,300 +1,564 @@
-# File Management System
+# 📁 TradeNest - Modern File Management System
 
-This project is a **File Management System** built with:
-- `frontend/` -> Angular web application
-- `backend/` -> Spring Boot API (multi-module Maven project)
+> A production-ready file management platform with **Google OAuth**, **JWT authentication**, **real-time processing**, and a beautiful responsive UI.
 
-This README is written in simple language so that any new team member can run and understand the project quickly.
-
----
-
-## 1) What This Project Does
-
-The system helps users:
-1. Register and login
-2. Upload trade files (CSV)
-3. Track file processing status
-4. View file details and record count
-5. Search and filter file history
-
-### Status flow used in project
-
-`PENDING -> PROCESSING -> SUCCESS / FAILED`
-
-So when a file is uploaded, it is first shown as pending, then processed in backend, then finally marked success or failed.
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-blue)
+![Angular](https://img.shields.io/badge/Angular-17+-red)
+![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-3.3+-green)
+![Node](https://img.shields.io/badge/Node-18+-yellow)
 
 ---
 
-## 2) Project Structure
+## ✨ Features
 
-```text
-file-load-ui-Test-main/
-  frontend/                  # Angular app
-  backend/                   # Spring Boot multi-module backend
-	api/                     # REST controllers, security, app startup
-	service/                 # business logic + batch orchestration
-	dao/                     # repositories
-	model/                   # entities and DTOs
-  package.json               # root helper scripts
-  README.md
+- 🔐 **Google OAuth 2.0** - Seamless social login
+- 🔑 **JWT Authentication** - Secure token-based auth
+- 📤 **File Upload** - Drag-drop CSV file uploads with progress tracking
+- ⚡ **Real-time Processing** - Status updates: PENDING → PROCESSING → SUCCESS/FAILED
+- 🔍 **Advanced Search** - Filter by name, date, status, record count
+- 📊 **Dashboard** - File statistics and analytics
+- 👤 **User Profiles** - Editable profile with image upload
+- 🎨 **Modern UI** - Built with Angular Material, fully responsive
+- 📱 **Mobile Ready** - Works seamlessly on mobile devices
+- 🛡️ **Secure API** - Global exception handling, CORS protection
+
+---
+
+## 🏗️ Tech Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| **Frontend** | Angular | 17+ |
+| **Backend** | Spring Boot | 3.3+ |
+| **Database** | MySQL | 8.0+ |
+| **Auth** | JWT + Google OAuth 2.0 | - |
+| **Package Manager** | npm / Maven | Latest |
+| **UI Framework** | Angular Material | 17+ |
+
+---
+
+## 📋 Prerequisites
+
+Before you start, make sure you have these installed:
+
+```bash
+# Check versions
+java -version          # Java 21+
+mvn -v                 # Maven 3.9+
+node -v                # Node.js 18+
+npm -v                 # npm 9+
+mysql --version        # MySQL 8.0+
+```
+
+### Quick Install (if missing)
+
+- **Java 21**: https://www.oracle.com/java/technologies/downloads/#java21
+- **Maven**: https://maven.apache.org/download.cgi
+- **Node.js**: https://nodejs.org/ (includes npm)
+- **MySQL**: https://dev.mysql.com/downloads/mysql/
+
+---
+
+## 🚀 Quick Start (5 Minutes)
+
+### 1️⃣ Clone & Navigate
+```powershell
+git clone https://github.com/Mohitjadaun2026/Test-FileManagementSystem.git
+cd Test-FileManagementSystem
+```
+
+### 2️⃣ Setup Google OAuth (REQUIRED for login)
+
+#### Create Google OAuth Client
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create new project: `filemanagementsystem`
+3. Enable OAuth 2.0 API
+4. Create OAuth 2.0 Client ID (Web Application)
+5. Add redirect URI:
+   ```
+   http://localhost:8080/login/oauth2/code/google
+   ```
+
+#### Copy Credentials to Backend
+Create `backend/api/.env` file:
+```dotenv
+DB_URL=jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_USERNAME=root
+DB_PASSWORD=your_mysql_password
+
+GOOGLE_CLIENT_ID=your_client_id_here
+GOOGLE_CLIENT_SECRET=your_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:8080/login/oauth2/code/google
+
+JWT_SECRET=your_secret_key_here_min_32_chars
+JWT_EXPIRATION=86400000
+
+SERVER_PORT=8080
+SERVER_SSL_ENABLED=false
+```
+
+### 3️⃣ Start Backend (Terminal 1)
+```powershell
+cd backend/api
+mvn spring-boot:run
+```
+✅ Backend runs on: `http://localhost:8080`
+
+### 4️⃣ Start Frontend (Terminal 2)
+```powershell
+cd frontend
+npm install
+ng serve --open
+```
+✅ Frontend opens at: `http://localhost:4200`
+
+### 5️⃣ Login & Explore
+- Click "Continue with Google"
+- Log in with your Google account
+- Start uploading files!
+
+---
+
+## 📂 Project Structure
+
+```
+Test-FileManagementSystem/
+│
+├── 📦 frontend/                          # Angular App (Port 4200)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── components/              # UI Components
+│   │   │   │   ├── login/               # Login page
+│   │   │   │   ├── register/            # Registration page
+│   │   │   │   ├── file-list/           # Files listing
+│   │   │   │   ├── file-upload/         # Upload form
+│   │   │   │   ├── dashboard/           # Analytics dashboard
+│   │   │   │   ├── profile/             # User profile
+│   │   │   │   └── navbar/              # Navigation bar
+│   │   │   ├── services/                # API Services
+│   │   │   │   ├── auth.service.ts      # Authentication
+│   │   │   │   ├── file-load.service.ts # File operations
+│   │   │   │   └── auth.interceptor.ts  # JWT interceptor
+│   │   │   ├── guards/                  # Route guards
+│   │   │   ├── models/                  # TypeScript models
+│   │   │   └── app.module.ts            # Main module
+│   │   └── environments/                # Config files
+│   ├── angular.json
+│   ├── package.json
+│   └── README_SIMPLE.md
+│
+├── 🛠️ backend/                          # Spring Boot API (Port 8080)
+│   ├── api/                             # REST API Module
+│   │   ├── src/main/java/
+│   │   │   ├── controller/              # REST Endpoints
+│   │   │   │   ├── AuthController.java
+│   │   │   │   └── FileLoadController.java
+│   │   │   ├── service/                 # Business Logic
+│   │   │   ├── security/                # JWT, OAuth2
+│   │   │   ├── exception/               # Global Exception Handler
+│   │   │   └── config/                  # Spring Config
+│   │   ├── src/main/resources/
+│   │   │   └── application.yml          # Configuration
+│   │   ├── .env                         # Secrets (not committed)
+│   │   └── .env.example                 # Template
+│   │
+│   ├── service/                         # Service Logic Module
+│   │   └── FileLoadServiceImpl.java
+│   │
+│   ├── dao/                             # Data Access Module
+│   │   └── UserAccountRepository.java
+│   │
+│   ├── model/                           # Entity Models
+│   │   └── UserAccount.java
+│   │
+│   └── pom.xml                          # Maven Config
+│
+├── 📄 README.md                         # This file
+├── .gitignore                           # Git ignore rules
+└── package.json                         # NPM Helper Scripts
 ```
 
 ---
 
-## 3) Prerequisites (Install Once)
+## 🔧 Environment Setup
 
-Install these tools first:
-- Java 21+
-- Maven 3.9+
-- Node.js 18+ (npm included)
-- MySQL 8+
+### Backend Configuration (`.env` file)
 
-Check installation with:
+The backend loads from `backend/api/.env` file using Spring's config import:
 
-```powershell
-java -version
-mvn -v
-node -v
-npm -v
+```yaml
+# In application.yml
+spring:
+  config:
+    import: optional:file:.env[.properties]
 ```
 
-If `mvn` is not recognized, Maven is not added to PATH.
+**Don't commit `.env`** - it's already in `.gitignore`
+
+### Frontend Configuration
+
+**File:** `frontend/src/environments/environment.ts`
+
+```typescript
+export const environment = {
+  production: false,
+  apiBaseUrl: 'http://localhost:8080/api'
+};
+```
+
+Change this if backend runs on a different port.
 
 ---
 
-## 4) One-Time Setup
+## 🔐 OAuth 2.0 Setup (Detailed)
 
-Open terminal in project root:
+### For Developers
 
-```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+Each developer needs their own Google OAuth credentials:
+
+1. **Go to Google Cloud Console**
+   ```
+   https://console.cloud.google.com/
+   ```
+
+2. **Create/Select Project**
+   - Click project selector (top)
+   - Create new project
+
+3. **Enable OAuth 2.0 API**
+   - Search: "Google+ API"
+   - Click "Enable"
+
+4. **Create OAuth Client**
+   - Left menu → APIs & Services → Credentials
+   - Click "Create Credentials" → OAuth 2.0 Client ID
+   - Choose: Web application
+   - Name: `FileLoad Local Dev`
+
+5. **Add Authorized Origins**
+   ```
+   http://localhost:4200
+   http://localhost:8080
+   http://127.0.0.1:4200
+   http://127.0.0.1:8080
+   ```
+
+6. **Add Redirect URIs**
+   ```
+   http://localhost:8080/login/oauth2/code/google
+   ```
+
+7. **Copy Credentials**
+   - Download as JSON (optional)
+   - Copy Client ID and Secret
+   - Paste into `backend/api/.env`
+
+### Login Flow
+
 ```
-
-Install frontend dependencies:
-
-```powershell
-npm --prefix frontend install
-```
-
-Optional backend build check:
-
-```powershell
-mvn -f backend/pom.xml -DskipTests clean install
-```
-
----
-
-## 5) Run the Project (Day-to-Day)
-
-Run backend and frontend in **two separate terminals**.
-
-### Terminal 1 - Backend
-
-```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
-npm run backend
-```
-
-### Terminal 2 - Frontend
-
-```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
-npm run frontend
-```
-
-### Open URLs
-
-- Frontend app: `http://localhost:4200`
-- Backend API base: `http://localhost:8080/api`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-
----
-
-## 6) Important Config (Database + API)
-
-Backend config file: `backend/api/src/main/resources/application.yml`
-
-Current local defaults:
-- DB URL: `jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`
-- DB Username: `root`
-- DB Password: from `DB_PASSWORD` env var (fallback exists in config)
-- Backend port: `8080`
-
-Frontend API config file: `frontend/src/environments/environment.ts`
-
-Current API URL:
-- `http://localhost:8080/api`
-
-If your DB credentials are different, set env vars before starting backend:
-
-```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-$env:DB_USERNAME="root"
-$env:DB_PASSWORD="your_password_here"
+User clicks "Continue with Google"
+  ↓
+Redirects to Google Login
+  ↓
+User authenticates
+  ↓
+Google redirects to http://localhost:8080/login/oauth2/code/google
+  ↓
+Backend validates code with Google
+  ↓
+Backend creates/finds user
+  ↓
+Backend generates JWT token
+  ↓
+Frontend receives token & stores in localStorage
+  ↓
+Redirected to /files dashboard
+  ↓
+✅ Logged In!
 ```
 
 ---
 
-## 7) Feature Walkthrough (Business Flow)
+## 📊 API Documentation
 
-### A) Register
-- User enters username/email/password
-- Frontend sends request to backend auth API
-- User account is created in database
+### Interactive API Testing (Swagger UI)
 
-### B) Login
-- User submits credentials
-- Backend validates and returns JWT token
-- Frontend stores token and sends it in future requests
+Once backend is running, visit:
 
-### C) Upload file
-- User selects CSV file
-- Frontend validates type/size
-- File uploads with progress indicator
-- Backend stores file and creates file-load record
+```
+http://localhost:8080/swagger-ui.html
+```
 
-### D) Processing
-- File status is visible in list
-- Backend processing updates status and record count
-- Frontend refreshes to show latest status
-
-### E) File list and filtering
-- Users can search by id/name/status/date/range
-- Table shows key columns and actions
-
-### F) File details
-- User can open complete details
-- Shows metadata, record count, and errors if any
+**Available Endpoints:**
+- `POST /api/auth/login` - Traditional login
+- `POST /api/auth/register` - Sign up
+- `GET /api/auth/oauth2/google` - Google OAuth
+- `POST /api/auth/upload-profile` - Profile image
+- `GET /api/file-loads` - List all files
+- `GET /api/file-loads/my` - Your files
+- `GET /api/file-loads/{id}` - File details
+- `POST /api/file-loads` - Upload file
+- `PUT /api/file-loads/{id}/status` - Update status
+- `DELETE /api/file-loads/{id}` - Delete file
 
 ---
 
-## 8) Where Data Is Saved
+## 🎯 Common Commands
 
-### Uploaded files on disk
-
-Files are saved in:
-- `backend/api/uploads/`
-
-The backend may store files with a generated prefix for uniqueness (to avoid file name collisions).
-
-### Metadata in database
-
-File details (status, count, errors, etc.) are stored in database table(s) managed by backend modules.
-
----
-
-## 9) Common Commands (Quick Reference)
-
-From project root:
+### Start Development Servers
 
 ```powershell
-# run backend
-npm run backend
+# Terminal 1 - Backend
+cd backend/api
+mvn spring-boot:run
 
-# run frontend
-npm run frontend
-
-# run frontend via default start
+# Terminal 2 - Frontend
+cd frontend
 npm start
+# or
+ng serve
 ```
 
-Backend only (from `backend/` folder):
+### Build for Production
 
 ```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main\backend"
-npm run backend
+# Frontend
+npm --prefix frontend run build
+# Output: frontend/dist/
+
+# Backend
+mvn -f backend/pom.xml clean package
+# Output: backend/api/target/api-1.0.0-SNAPSHOT.jar
+```
+
+### Run Tests
+
+```powershell
+# Backend unit tests
+mvn -f backend/pom.xml test
+
+# Frontend unit tests
+npm --prefix frontend test
+```
+
+### Database Operations
+
+```powershell
+# Start MySQL
+net start MySQL80
+
+# Connect to database
+mysql -u root -p
+
+# View tables
+USE file_load_mgmt;
+SHOW TABLES;
+SELECT COUNT(*) FROM users;
 ```
 
 ---
 
-## 10) Troubleshooting Guide
+## 🐛 Troubleshooting
 
-### Issue: `mvn` not recognized
-
-Use full Maven path temporarily:
-
+### "Port 8080 in use"
 ```powershell
-C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd -v
+# Use different port
+mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081
 ```
 
-And run backend with full Maven path if needed:
-
+### "Port 4200 in use"
 ```powershell
-C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd -f backend/api/pom.xml spring-boot:run
+ng serve --port 4201
 ```
 
-### Issue: Port 8080 already in use
-
+### "MySQL connection failed"
 ```powershell
-Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue |
-Select-Object -ExpandProperty OwningProcess -Unique |
-ForEach-Object { Stop-Process -Id $_ -Force }
+# Start MySQL service
+net start MySQL80
+
+# Test connection
+mysql -u root -p
+
+# Check credentials in .env file
 ```
 
-Then start backend again.
+### "Google login not working"
+- ✓ Check Google OAuth Client ID in `.env`
+- ✓ Verify redirect URI: `http://localhost:8080/login/oauth2/code/google`
+- ✓ Check browser console (F12) for errors
+- ✓ Verify backend is running
 
-### Issue: Frontend running but login/upload fails
+### "Build fails"
+```powershell
+# Clean and rebuild
+mvn clean install -DskipTests
 
-Check these:
-1. Backend is running on `http://localhost:8080`
-2. Frontend API URL in `frontend/src/environments/environment.ts` is `http://localhost:8080/api`
-3. Browser network tab shows 200/401/500 details
+# Clear cache
+rm -r ~/.m2/repository
+mvn clean install
+```
 
-### Issue: Backend starts but database error appears
+### "npm install errors"
+```powershell
+# Clear npm cache
+npm cache clean --force
 
-Verify:
-1. MySQL service is running
-2. Username/password are correct
-3. DB URL points to localhost and proper port
-
-### Issue: Swagger not opening
-
-Confirm backend is running first, then open:
-- `http://localhost:8080/swagger-ui.html`
+# Reinstall
+npm --prefix frontend install --legacy-peer-deps
+```
 
 ---
 
-## 11) Interview / Demo Checklist
+## 🚀 Deployment
 
-Before demo, confirm:
-- Backend started successfully
-- Frontend started successfully
-- Login works
-- Upload works
-- Status transitions visible
-- Record count and details page visible
-- Search/filter returns expected rows
+### Production Checklist
+
+- [ ] All tests passing
+- [ ] `.env` file with production credentials
+- [ ] Database backup configured
+- [ ] CORS updated for production domain
+- [ ] Google OAuth redirect URI updated
+- [ ] Swagger UI disabled (optional)
+- [ ] SSL certificate configured
+- [ ] Environment variables set on server
+
+### Deploy Backend
+
+```powershell
+# Build JAR
+mvn -f backend/pom.xml clean package
+
+# Copy to server
+scp backend/api/target/api-1.0.0-SNAPSHOT.jar user@server:/app/
+
+# Run on server
+java -jar api-1.0.0-SNAPSHOT.jar
+```
+
+### Deploy Frontend
+
+```powershell
+# Build
+npm --prefix frontend run build
+
+# Deploy dist/ folder to web server (Nginx, Apache, etc.)
+```
 
 ---
 
-## 12) Git Push (Mohit Branch)
+## 📚 Learning Resources
 
-If you are working on `Mohit` branch and want to push updates:
+| Topic | Resource |
+|-------|----------|
+| Angular | [Angular Docs](https://angular.io/docs) |
+| Spring Boot | [Spring Boot Docs](https://spring.io/projects/spring-boot) |
+| OAuth 2.0 | [RFC 6749](https://tools.ietf.org/html/rfc6749) |
+| JWT | [jwt.io](https://jwt.io/) |
+| MySQL | [MySQL Docs](https://dev.mysql.com/doc/) |
+
+---
+
+## 💡 Development Tips
+
+1. **Use Chrome DevTools**
+   - F12 → Network tab to debug API calls
+   - Console tab for JavaScript errors
+
+2. **Check Backend Logs**
+   - Terminal where backend runs shows all logs
+   - Look for ERROR or Exception messages
+
+3. **Database Debugging**
+   ```powershell
+   mysql> USE file_load_mgmt;
+   mysql> SELECT * FROM users;
+   mysql> SELECT * FROM file_loads;
+   ```
+
+4. **Postman/Insomnia**
+   - Import API from Swagger: `/v3/api-docs`
+   - Test endpoints without UI
+
+5. **Angular DevTools**
+   - Install Angular DevTools Chrome extension
+   - Debug component state in real-time
+
+---
+
+## 🤝 Contributing
+
+1. Create feature branch: `git checkout -b feature/my-feature`
+2. Commit changes: `git commit -m "Add feature"`
+3. Push: `git push origin feature/my-feature`
+4. Create Pull Request
+
+### Git Workflow (Mohit Branch)
 
 ```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+# View current branch
 git branch --show-current
-git add .
-git commit -m "update readme and project changes"
+
+# Push to Mohit branch
 git push origin Mohit
-```
 
-If push is rejected (non-fast-forward):
+# Pull latest changes
+git pull origin Mohit
 
-```powershell
+# If rejected, rebase
 git pull --rebase origin Mohit
 git push origin Mohit
 ```
 
 ---
 
-## 13) Notes for New Developers
+## 📞 Support & Issues
 
-- Start with this README first
-- Do not run backend from parent POM with plain `spring-boot:run`
-- Use provided npm scripts (`npm run backend`, `npm run frontend`)
-- Keep backend and frontend terminals running together while testing end-to-end flow
+### Common Issues & Solutions
 
+| Issue | Solution |
+|-------|----------|
+| Cannot connect to database | Start MySQL: `net start MySQL80` |
+| Backend won't start | Check port 8080 is free |
+| Frontend shows 404 | Check `apiBaseUrl` in `environment.ts` |
+| Google login fails | Verify OAuth credentials in `.env` |
+| File upload fails | Check file size < 50MB |
 
+### Getting Help
+
+1. Check Swagger docs: `http://localhost:8080/swagger-ui.html`
+2. Read backend logs in terminal
+3. Check browser console (F12)
+4. Review error response in Network tab
+
+---
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+---
+
+## 👨‍💻 Author
+
+**TradeNest Development Team**  
+March 2026
+
+---
+
+## 🎉 Getting Started Checklist
+
+- [ ] Installed Java, Maven, Node.js, MySQL
+- [ ] Created Google OAuth credentials
+- [ ] Created `backend/api/.env` with credentials
+- [ ] Started MySQL: `net start MySQL80`
+- [ ] Started backend: `mvn spring-boot:run`
+- [ ] Started frontend: `ng serve`
+- [ ] Opened `http://localhost:4200`
+- [ ] Tested Google login
+- [ ] Uploaded a test file
+- [ ] Viewed dashboard & file list
+
+✅ **You're ready to go!**
 
 

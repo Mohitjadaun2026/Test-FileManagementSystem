@@ -1,0 +1,4 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD9201,CLT921,TSLA,0,210.75,BUY
+TRD9202,CLT922,NVDA,-3,915.10,SELL
+
