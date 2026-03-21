@@ -11,10 +11,11 @@ import { AuthService } from '../../services/auth.service';
 })
 export class RegisterComponent {
   loading = false;
+  private readonly comEmailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.com$/i;
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(this.comEmailPattern)]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 

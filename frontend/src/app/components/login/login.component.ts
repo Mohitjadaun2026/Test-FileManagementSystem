@@ -15,7 +15,7 @@ export class LoginComponent {
   oauthLoading = false;
 
   form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    login: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 

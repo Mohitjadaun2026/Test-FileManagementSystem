@@ -64,11 +64,12 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Login user")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        String login = request.getLogin().trim();
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(login, request.getPassword())
         );
 
-        UserAccount user = userRepository.findByEmail(request.getEmail())
+        UserAccount user = userRepository.findByEmailOrUsername(login, login)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
         String token = jwtUtil.generateToken(user.getEmail());

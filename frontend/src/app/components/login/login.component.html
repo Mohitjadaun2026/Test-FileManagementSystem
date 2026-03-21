@@ -2,9 +2,9 @@
     <h2>Login</h2>
     <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline" class="full">
-            <mat-label>Email</mat-label>
-            <input matInput placeholder="you@example.com" formControlName="email" />
-            <mat-error *ngIf="form.controls.email.invalid">Valid email required</mat-error>
+            <mat-label>Username or Email</mat-label>
+            <input matInput formControlName="login" />
+            <mat-error *ngIf="form.controls.login.invalid">Username or email is required</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">
