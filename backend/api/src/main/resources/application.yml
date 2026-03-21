@@ -41,7 +41,7 @@ springdoc:
     path: /swagger-ui.html
 
 jwt:
-  secret: ${JWT_SECRET:change-me-min-32-chars}
+  secret: ${JWT_SECRET:ChangeMeAtRuntime_ThisDefaultIsAtLeast32Chars_LongKey12345}
   expiration: ${JWT_EXPIRATION:86400000}
 
 

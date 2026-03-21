@@ -33,7 +33,7 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  login(payload: { email: string; password: string }): Observable<User> {
+  login(payload: { login: string; password: string }): Observable<User> {
     return this.http.post<User>(`${environment.apiBaseUrl}/auth/login`, payload).pipe(
       tap((user) => {
         this.saveUser(user);
