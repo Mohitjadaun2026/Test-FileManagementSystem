@@ -18,7 +18,7 @@ const routes: Routes = [
   { path: 'oauth/callback', component: OauthCallbackComponent },
   { path: 'register', component: RegisterComponent },
 
-  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+  { path: 'dashboard', component: DashboardComponent },
 
   { path: 'files', component: FileListComponent, canActivate: [AuthGuard] },
   { path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] },
