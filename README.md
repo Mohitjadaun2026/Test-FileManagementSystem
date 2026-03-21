@@ -541,7 +541,7 @@ MIT License - See LICENSE file for details
 
 ## 👨‍💻 Author
 
-**FileLoad Development Team**  
+**TradeNest Development Team**  
 March 2026
 
 ---
@@ -561,9 +561,4 @@ March 2026
 
 ✅ **You're ready to go!**
 
----
-
-**Last Updated:** March 21, 2026  
-**Project Status:** ✅ Production Ready  
-**Version:** 1.0.0
 
