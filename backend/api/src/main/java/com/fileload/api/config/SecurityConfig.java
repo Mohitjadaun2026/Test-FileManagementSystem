@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/oauth/**",
+                                "/api/file-loads/overview",
                                 "/oauth2/**",
                                 "/login/oauth2/**",
                                 "/uploads/**",   // 🔥 ADD THIS LINE
