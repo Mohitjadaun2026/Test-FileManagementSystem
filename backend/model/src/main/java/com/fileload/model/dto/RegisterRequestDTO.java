@@ -2,6 +2,7 @@ package com.fileload.model.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequestDTO {
@@ -12,6 +13,10 @@ public class RegisterRequestDTO {
 
     @NotBlank
     @Email
+    @Pattern(
+            regexp = "(?i)^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.com$",
+            message = "must be a valid .com email address"
+    )
     private String email;
 
     @NotBlank

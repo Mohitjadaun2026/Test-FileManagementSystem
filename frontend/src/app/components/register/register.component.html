@@ -9,6 +9,10 @@
         <mat-form-field appearance="outline" class="full">
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" />
+            <mat-error *ngIf="form.controls.email.hasError('required')">Email is required</mat-error>
+            <mat-error *ngIf="form.controls.email.hasError('email') || form.controls.email.hasError('pattern')">
+                Email must be valid (example: mohit&#64;gmail.com)
+            </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">

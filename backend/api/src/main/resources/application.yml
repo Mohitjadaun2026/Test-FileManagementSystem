@@ -1,11 +1,10 @@
-server:
-  port: 8080
-
 spring:
+  application:
+    name: security
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:Mohit@123}
+    password: ${DB_PASSWORD:root@39}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -23,6 +22,17 @@ spring:
       initialize-schema: always
     job:
       enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:change-me}
+            client-secret: ${GOOGLE_CLIENT_SECRET:change-me}
+            scope: profile,email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+server:
+  port: 8080
 
 springdoc:
   api-docs:
@@ -30,10 +40,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-app:
-  jwt:
-    # Base64-encoded 32+ byte key. Replace with secure value in real environments.
-    secret: ${JWT_SECRET:QmFzZTY0RW5jb2RlZFNlY3JldEtleUZvckRldk9ubHktUmVwbGFjZUluUHJvZA==}
-    expiry-minutes: ${JWT_EXPIRY_MINUTES:120}
+jwt:
+  secret: ${JWT_SECRET:ChangeMeAtRuntime_ThisDefaultIsAtLeast32Chars_LongKey12345}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 
