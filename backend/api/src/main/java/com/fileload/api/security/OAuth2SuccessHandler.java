@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -31,32 +32,70 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             Authentication authentication)
             throws IOException, ServletException {
 
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
+            // Extract user info from OAuth2User (handles different Google response formats)
+            String email = extractEmail(oAuth2User);
+            String name = extractName(oAuth2User);
 
-        // Check if user exists, if not create new user
-        UserAccount user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    UserAccount newUser = new UserAccount();
-                    newUser.setEmail(email);
-                    newUser.setUsername(name != null ? name : email);
-                    newUser.setPassword(""); // OAuth2 users don't have password
-                    newUser.setRole("USER");
-                    return userRepository.save(newUser);
-                });
+            if (email == null || email.isEmpty()) {
+                sendErrorRedirect(response, "Email not available from OAuth provider");
+                return;
+            }
 
-        // Generate JWT token
-        String token = jwtUtil.generateToken(user.getEmail());
+            // Check if user exists, if not create new user
+            UserAccount user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        UserAccount newUser = new UserAccount();
+                        newUser.setEmail(email);
+                        newUser.setUsername(name != null && !name.isEmpty() ? name : email.split("@")[0]);
+                        newUser.setPassword(""); // OAuth2 users don't have password
+                        newUser.setRole("USER");
+                        return userRepository.save(newUser);
+                    });
 
-        // Redirect to frontend callback with token + user details for local session bootstrap.
-        String redirectUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:4200/oauth/callback")
-                .queryParam("token", token)
-                .queryParam("email", user.getEmail())
-                .queryParam("username", user.getUsername())
-                .queryParam("id", user.getId())
-                .queryParam("role", user.getRole())
+            // Generate JWT token
+            String token = jwtUtil.generateToken(user.getEmail());
+
+            // Redirect to frontend callback with token + user details
+            String redirectUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:4200/oauth/callback")
+                    .queryParam("token", token)
+                    .queryParam("email", user.getEmail())
+                    .queryParam("username", user.getUsername())
+                    .queryParam("id", user.getId())
+                    .queryParam("role", user.getRole())
+                    .build()
+                    .toUriString();
+            response.sendRedirect(redirectUrl);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorRedirect(response, "OAuth authentication failed: " + e.getMessage());
+        }
+    }
+
+    private String extractEmail(OAuth2User oAuth2User) {
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        if (attributes.containsKey("email")) {
+            return (String) attributes.get("email");
+        }
+        return oAuth2User.getAttribute("email");
+    }
+
+    private String extractName(OAuth2User oAuth2User) {
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        if (attributes.containsKey("name")) {
+            return (String) attributes.get("name");
+        }
+        if (attributes.containsKey("given_name")) {
+            return (String) attributes.get("given_name");
+        }
+        return oAuth2User.getAttribute("name");
+    }
+
+    private void sendErrorRedirect(HttpServletResponse response, String errorMessage) throws IOException {
+        String redirectUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:4200/login")
+                .queryParam("error", errorMessage)
                 .build()
                 .toUriString();
         response.sendRedirect(redirectUrl);
