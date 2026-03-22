@@ -1,15 +1,31 @@
 package com.fileload.model.dto;
 
-import jakarta.validation.constraints.Email;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 
-public record LoginRequestDTO(
+public class LoginRequestDTO {
 
-        @NotBlank
-        @Email
-        String email,
+    @NotBlank
+    @JsonAlias("email")
+    private String login;
 
-        @NotBlank
-        String password
+    @NotBlank
+    private String password;
 
-) {}
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+

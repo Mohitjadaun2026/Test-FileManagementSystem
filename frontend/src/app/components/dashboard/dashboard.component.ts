@@ -60,13 +60,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private fetchOverview() {
     return this.fileLoadService.getDashboardOverview().pipe(
       switchMap((overview) => {
-        if (this.hasMeaningfulData(overview)) {
+        // For public dashboard access, avoid hitting protected fallback APIs when logged out.
+        if (!this.auth.isAuthenticated() || this.hasMeaningfulData(overview)) {
           return of(overview);
         }
         return this.fetchOverviewFromListApi();
       }),
-      catchError(() => this.fetchOverviewFromListApi())
+      catchError(() => {
+        if (!this.auth.isAuthenticated()) {
+          return of(this.emptyOverview());
+        }
+        return this.fetchOverviewFromListApi();
+      })
     );
+  }
+
+  private emptyOverview(): DashboardOverview {
+    return {
+      totalUploads: 0,
+      inProcessing: 0,
+      successRate: 0,
+      exceptionsToday: 0,
+      pendingCount: 0,
+      processingCount: 0,
+      successCount: 0,
+      lastUpdated: new Date().toISOString()
+    };
   }
 
   private hasMeaningfulData(overview: DashboardOverview | null | undefined): boolean {

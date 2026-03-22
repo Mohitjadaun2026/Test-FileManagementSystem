@@ -1,6 +1,8 @@
 package com.fileload.api.controller;
-import org.springframework.web.bind.annotation.RequestParam;
+
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletResponse;
 import com.fileload.api.security.JwtUtil;
 import com.fileload.dao.repository.UserAccountRepository;
 import com.fileload.model.dto.AuthResponseDTO;
@@ -10,16 +12,13 @@ import com.fileload.model.entity.UserAccount;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -44,25 +43,47 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register user")
     public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
-        if (userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
-        if (userRepository.existsByUsername(request.username())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
 
         UserAccount user = new UserAccount();
-        user.setUsername(request.username());
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole("ADMIN");
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole("USER");
         user = userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole()));
+        String token = jwtUtil.generateToken(user.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(toAuthResponse(user, token));
     }
+
+    @PostMapping("/login")
+    @Operation(summary = "Login user")
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        String login = request.getLogin().trim();
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(login, request.getPassword())
+        );
+
+        UserAccount user = userRepository.findByEmailOrUsername(login, login)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+
+        String token = jwtUtil.generateToken(user.getEmail());
+        return ResponseEntity.ok(toAuthResponse(user, token));
+    }
+
+    @GetMapping("/oauth2/google")
+    @Operation(summary = "Start Google OAuth2 login")
+    public void googleOauthLogin(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/oauth2/authorization/google");
+    }
+
     @PostMapping("/upload-profile")
-    public ResponseEntity<Map<String, String>> uploadProfile(
+    public ResponseEntity<java.util.Map<String, String>> uploadProfile(
             @RequestParam("file") MultipartFile file,
             @RequestParam("userId") Long userId
     ) throws Exception {
@@ -79,21 +100,7 @@ public class AuthController {
         user.setProfileImage("/uploads/" + filename);
         userRepository.save(user);
 
-        return ResponseEntity.ok(Map.of("profileImage", user.getProfileImage()));
-    }
-
-    @PostMapping("/login")
-    @Operation(summary = "Login user")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
-
-        UserAccount user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
-
-        String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole()));
-        return ResponseEntity.ok(toAuthResponse(user, token));
+        return ResponseEntity.ok(java.util.Map.of("profileImage", user.getProfileImage()));
     }
 
     private AuthResponseDTO toAuthResponse(UserAccount user, String token) {
@@ -107,6 +114,4 @@ public class AuthController {
         return dto;
     }
 }
-
-
 
