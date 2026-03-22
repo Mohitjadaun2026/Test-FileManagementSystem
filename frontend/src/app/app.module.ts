@@ -21,6 +21,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { ProfileDialogComponent } from './components/profile-dialog/profile-dialog.component'; // ✅ ADD THIS
+import { OauthCallbackComponent } from './components/oauth-callback/oauth-callback.component';
 
 // Angular Material modules
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -63,7 +64,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     NavbarComponent,
     FooterComponent,
     ProfileComponent,
-    ProfileDialogComponent   // ✅ IMPORTANT
+    ProfileDialogComponent,   // ✅ IMPORTANT
+    OauthCallbackComponent
   ],
   imports: [
     BrowserModule,

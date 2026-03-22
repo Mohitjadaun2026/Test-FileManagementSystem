@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { FileLoadService } from '../../services/file-load.service';
 
 interface UploadItem {
@@ -23,17 +24,21 @@ export class FileUploadComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   readonly maxFileSizeBytes = 20 * 1024 * 1024;
- readonly acceptedExtensions = ['.csv'];
-
- readonly acceptedMimeTypes = ['text/csv'];
+  readonly acceptedExtensions = ['.csv'];
+  readonly acceptedMimeTypes = ['text/csv'];
 
   uploads: UploadItem[] = [];
   description = '';
   tagsText = '';
   isOver = false;
   private readonly minVisibleUploadMs = 2200;
+  private redirectAfterUpload = true;
 
-  constructor(private api: FileLoadService, private snack: MatSnackBar) {}
+  constructor(
+    private api: FileLoadService,
+    private snack: MatSnackBar,
+    private router: Router
+  ) {}
 
   get acceptedFileHint(): string {
     return `CSV only · max 20 MB`;
@@ -53,19 +58,25 @@ export class FileUploadComponent {
     const done = this.uploads.filter((u) => u.state === 'done').length;
     const failed = this.uploads.filter((u) => u.state === 'error').length;
     const canceled = this.uploads.filter((u) => u.state === 'canceled').length;
+
     if (this.isUploading) return `Uploading files... ${this.overallProgress}%`;
-    if (done || failed || canceled) return `Completed: ${done} successful, ${failed} failed, ${canceled} canceled`;
+    if (done || failed || canceled) {
+      return `Completed: ${done} successful, ${failed} failed, ${canceled} canceled`;
+    }
     return 'Ready to upload';
   }
 
   get selectedCancelableCount(): number {
-    return this.uploads.filter((u) => u.selected && (u.state === 'queued' || u.state === 'uploading')).length;
+    return this.uploads.filter(
+      (u) => u.selected && (u.state === 'queued' || u.state === 'uploading')
+    ).length;
   }
 
   onFileSelected(ev: Event) {
     const target = ev.target as HTMLInputElement;
     const files = target.files;
     if (!files?.length) return;
+
     this.queueFiles(Array.from(files));
     target.value = '';
   }
@@ -73,8 +84,11 @@ export class FileUploadComponent {
   onDrop(ev: DragEvent) {
     ev.preventDefault();
     this.isOver = false;
+
     const files = ev.dataTransfer?.files;
-    if (files?.length) this.queueFiles(Array.from(files));
+    if (files?.length) {
+      this.queueFiles(Array.from(files));
+    }
   }
 
   onDragOver(ev: DragEvent) {
@@ -90,27 +104,38 @@ export class FileUploadComponent {
     const lower = file.name.toLowerCase();
     const hasAllowedExtension = this.acceptedExtensions.some((ext) => lower.endsWith(ext));
     const hasAllowedMime = !file.type || this.acceptedMimeTypes.includes(file.type);
+
     if (!(hasAllowedExtension && hasAllowedMime)) {
-      this.snack.open(`Only CSV files are allowed: ${file.name}`, 'Dismiss', { duration: 3500 });
+      this.snack.open(`Only CSV files are allowed: ${file.name}`, 'Dismiss', {
+        duration: 3500
+      });
       return false;
     }
+
     if (file.size > this.maxFileSizeBytes) {
-      this.snack.open(`File exceeds 20 MB limit: ${file.name}`, 'Dismiss', { duration: 3500 });
+      this.snack.open(`File exceeds 20 MB limit: ${file.name}`, 'Dismiss', {
+        duration: 3500
+      });
       return false;
     }
+
     return true;
   }
 
   queueFiles(files: File[]) {
     for (const file of files) {
       if (!this.isValidFile(file)) continue;
-      this.uploads.push({ file, progress: 0, state: 'queued', selected: false });
+      this.uploads.push({
+        file,
+        progress: 0,
+        state: 'queued',
+        selected: false
+      });
     }
   }
 
   startUploads() {
     if (this.isUploading) return;
-
     this.startNextUpload();
   }
 
@@ -118,10 +143,20 @@ export class FileUploadComponent {
     if (this.isUploading) return;
 
     const next = this.uploads.find((u) => u.state === 'queued');
-    if (!next) return;
+    if (!next) {
+      this.handleUploadBatchFinished();
+      return;
+    }
 
-    const tags = this.tagsText.split(',').map((t) => t.trim()).filter(Boolean);
-    const extra = { description: this.description || undefined, tags: tags.length ? tags : undefined };
+    const tags = this.tagsText
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const extra = {
+      description: this.description || undefined,
+      tags: tags.length ? tags : undefined
+    };
 
     next.state = 'uploading';
     next.startedAt = Date.now();
@@ -132,7 +167,6 @@ export class FileUploadComponent {
         if (event.type === HttpEventType.UploadProgress) {
           if (event.total) {
             const actual = Math.round((100 * event.loaded) / event.total);
-            // Keep headroom so users can still cancel before final commit.
             next.progress = Math.min(96, Math.max(next.progress, actual));
           } else {
             next.progress = Math.min(90, next.progress + 7);
@@ -144,23 +178,45 @@ export class FileUploadComponent {
 
           next.finishTimer = setTimeout(() => {
             if (next.state === 'canceled') return;
+
             next.progress = 100;
             next.state = 'done';
             next.finishTimer = undefined;
-            this.snack.open(`Upload successful: ${next.file.name}`, 'OK', { duration: 2000 });
+
+            this.snack.open(`Upload successful: ${next.file.name}`, 'OK', {
+              duration: 2000
+            });
+
             this.startNextUpload();
           }, wait);
         }
       },
       error: () => {
         if (next.state === 'canceled') return;
+
         next.state = 'error';
         next.sub = undefined;
-        this.snack.open(`Upload failed: ${next.file.name}`, 'Dismiss', { duration: 3500 });
+
+        this.snack.open(`Upload failed: ${next.file.name}`, 'Dismiss', {
+          duration: 3500
+        });
+
         this.startNextUpload();
       },
       complete: () => {
         next.sub = undefined;
+      }
+    });
+  }
+
+  private handleUploadBatchFinished() {
+    const doneCount = this.uploads.filter((u) => u.state === 'done').length;
+
+    if (!this.redirectAfterUpload || doneCount === 0) return;
+
+    this.router.navigate(['/files'], {
+      queryParams: {
+        refresh: Date.now()
       }
     });
   }
@@ -182,30 +238,42 @@ export class FileUploadComponent {
     item.selected = false;
 
     if (!options?.silent) {
-      this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', { duration: 1500 });
+      this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', {
+        duration: 1500
+      });
     }
 
-    // Continue queue if an active upload was canceled.
     if (options?.continueQueue !== false && wasUploading) {
       this.startNextUpload();
     }
   }
 
   cancelSelected() {
-    const selected = this.uploads.filter((u) => u.selected && (u.state === 'queued' || u.state === 'uploading'));
+    const selected = this.uploads.filter(
+      (u) => u.selected && (u.state === 'queued' || u.state === 'uploading')
+    );
+
     if (!selected.length) return;
 
     const hadActive = selected.some((u) => u.state === 'uploading');
+
     for (const item of selected) {
       this.cancelUpload(item, { silent: true, continueQueue: false });
     }
 
-    this.snack.open(`Canceled ${selected.length} file(s)`, 'OK', { duration: 1800 });
-    if (hadActive) this.startNextUpload();
+    this.snack.open(`Canceled ${selected.length} file(s)`, 'OK', {
+      duration: 1800
+    });
+
+    if (hadActive) {
+      this.startNextUpload();
+    }
   }
 
   clearDone() {
-    this.uploads = this.uploads.filter((u) => u.state !== 'done' && u.state !== 'canceled');
+    this.uploads = this.uploads.filter(
+      (u) => u.state !== 'done' && u.state !== 'canceled'
+    );
   }
 
   triggerFilePick() {

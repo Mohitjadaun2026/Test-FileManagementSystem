@@ -1,11 +1,16 @@
-server:
-  port: 8080
-
 spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: TradeNest
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DB_USERNAME:root}
+<<<<<<< HEAD
     password: ${DB_PASSWORD:root@39}
+=======
+    password: ${DB_PASSWORD:root@726}
+>>>>>>> 168b6e0aa8198bbad5e958147e68c8960be354a5
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -23,6 +28,32 @@ spring:
       initialize-schema: always
     job:
       enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: authorization_code
+            scope: profile,email
+            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/login/oauth2/code/google}
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://www.googleapis.com/oauth2/v4/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: email
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+server:
+  port: ${SERVER_PORT:8080}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SERVER_SSL_KEY_STORE:}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
+    key-alias: ${SERVER_SSL_KEY_ALIAS:myapp}
 
 springdoc:
   api-docs:
@@ -30,10 +61,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-app:
-  jwt:
-    # Base64-encoded 32+ byte key. Replace with secure value in real environments.
-    secret: ${JWT_SECRET:QmFzZTY0RW5jb2RlZFNlY3JldEtleUZvckRldk9ubHktUmVwbGFjZUluUHJvZA==}
-    expiry-minutes: ${JWT_EXPIRY_MINUTES:120}
+jwt:
+  secret: ${JWT_SECRET:}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 

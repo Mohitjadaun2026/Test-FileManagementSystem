@@ -99,7 +99,6 @@ public class FileLoadController {
     }
 
     @GetMapping("/overview")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(summary = "Get live dashboard overview metrics")
     public ResponseEntity<DashboardOverviewDTO> getDashboardOverview() {
         return ResponseEntity.ok(fileLoadService.getDashboardOverview());
