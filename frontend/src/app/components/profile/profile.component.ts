@@ -46,7 +46,7 @@ loadProfileImage(): void {
       'http://localhost:8080' +
       this.currentUser.profileImage +
       '?t=' +
-      new Date().getTime(); // 🔥 cache fix
+      new Date().getTime();
   } else {
     this.profileImage = 'assets/default-avatar.svg';
   }
@@ -56,7 +56,7 @@ loadProfileImage(): void {
     // Fetch all files with default criteria
     const criteria: SearchCriteria = {
       page: 0,
-      size: 1000  // Get all files (adjust if needed)
+      size: 1000  // Get all files
     };
 
     this.fileService.myList(criteria).subscribe(
@@ -79,7 +79,7 @@ loadProfileImage(): void {
           : 0;
       },
       (error) => {
-        console.error('Error loading file statistics:', error);
+        console.error('[ProfileComponent] Error loading file statistics:', error);
       }
     );
   }
@@ -163,16 +163,16 @@ loadProfileImage(): void {
 
       this.auth.uploadProfileImage(formData).subscribe((res: any) => {
 
-        const imagePath = res.profileImage; // ✅ FIX
+        const imagePath = res.profileImage;
 
         this.profileImage = 'http://localhost:8080' + imagePath;
 
         this.currentUser!.profileImage = imagePath;
 
-        // ✅ SIMPLE & CORRECT
+
         this.auth.updateUser(this.currentUser!);
 
-        // 🔥 force UI refresh
+
         this.loadProfileImage();
 
         this.finishProfileUpdate();
@@ -181,14 +181,17 @@ loadProfileImage(): void {
       this.finishProfileUpdate();
     }
   }
+
 finishProfileUpdate(): void {
   if (this.newName.trim() && this.currentUser) {
     this.currentUser.name = this.newName;
 
-    // ✅ keep it simple
+
     this.auth.updateUser(this.currentUser!);
   }
 
   this.isEditing = false;
   alert('Profile updated successfully!');
 }}
+
+

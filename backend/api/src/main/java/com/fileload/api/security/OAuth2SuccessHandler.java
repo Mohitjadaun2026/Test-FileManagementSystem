@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -18,6 +19,9 @@ import java.util.Map;
 
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    @Value("${app.frontend-base-url:https://localhost:4200}")
+    private String frontendBaseUrl;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -59,7 +63,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String token = jwtUtil.generateToken(user.getEmail());
 
             // Redirect to frontend callback with token + user details
-            String redirectUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:4200/oauth/callback")
+            String redirectUrl = UriComponentsBuilder.fromHttpUrl(buildFrontendUrl("/oauth/callback"))
                     .queryParam("token", token)
                     .queryParam("email", user.getEmail())
                     .queryParam("username", user.getUsername())
@@ -94,12 +98,19 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     private void sendErrorRedirect(HttpServletResponse response, String errorMessage) throws IOException {
-        String redirectUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:4200/login")
+        String redirectUrl = UriComponentsBuilder.fromHttpUrl(buildFrontendUrl("/login"))
                 .queryParam("error", errorMessage)
                 .build()
                 .toUriString();
         response.sendRedirect(redirectUrl);
     }
-}
 
+    private String buildFrontendUrl(String path) {
+        String base = frontendBaseUrl == null ? "https://localhost:4200" : frontendBaseUrl.trim();
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + path;
+    }
+}
 

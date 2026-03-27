@@ -20,12 +20,12 @@ export class OauthCallbackComponent implements OnInit {
     const token = this.route.snapshot.queryParamMap.get('token');
     const email = this.route.snapshot.queryParamMap.get('email') || '';
     const username = this.route.snapshot.queryParamMap.get('username') || email;
-    const id = this.route.snapshot.queryParamMap.get('id') || '';
+    const id = Number(this.route.snapshot.queryParamMap.get('id') || 0);
     const role = this.route.snapshot.queryParamMap.get('role') || 'USER';
 
     if (!token || !email) {
       this.snack.open('Google login failed. Please try again.', 'Dismiss', { duration: 3500 });
-      this.router.navigate(['/login']);
+      this.router.navigate(['/login'], { replaceUrl: true });
       return;
     }
 
@@ -38,7 +38,6 @@ export class OauthCallbackComponent implements OnInit {
     });
 
     this.snack.open('Google login successful', 'OK', { duration: 2000 });
-    this.router.navigate(['/files']);
+    this.router.navigate(['/files'], { replaceUrl: true });
   }
 }
-
