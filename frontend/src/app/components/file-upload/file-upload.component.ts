@@ -271,9 +271,23 @@ export class FileUploadComponent {
   }
 
   clearDone() {
+    const before = this.uploads.length;
+
+    // "Finished" rows include successful, failed, and canceled uploads.
     this.uploads = this.uploads.filter(
-      (u) => u.state !== 'done' && u.state !== 'canceled'
+      (u) => u.state !== 'done' && u.state !== 'error' && u.state !== 'canceled'
     );
+
+    const removed = before - this.uploads.length;
+    if (removed > 0) {
+      this.snack.open(`Cleared ${removed} finished file(s)`, 'OK', {
+        duration: 1600
+      });
+    } else {
+      this.snack.open('No finished files to clear', 'OK', {
+        duration: 1600
+      });
+    }
   }
 
   triggerFilePick() {

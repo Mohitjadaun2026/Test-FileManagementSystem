@@ -11,6 +11,10 @@ public interface FileLoadService {
 
     FileLoadResponseDTO createFileLoad(MultipartFile file);
 
+    default FileLoadResponseDTO createFileLoad(MultipartFile file, String description, java.util.List<String> tags) {
+        return createFileLoad(file);
+    }
+
     FileLoadResponseDTO getFileLoadById(Long id);
 
     Page<FileLoadResponseDTO> searchFileLoads(SearchCriteriaDTO criteria);
@@ -31,5 +35,3 @@ public interface FileLoadService {
 
     DashboardOverviewDTO getDashboardOverview();
 }
-
-
