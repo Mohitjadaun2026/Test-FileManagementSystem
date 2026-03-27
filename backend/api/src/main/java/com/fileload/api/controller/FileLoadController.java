@@ -47,8 +47,22 @@ public class FileLoadController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(summary = "Create new file load")
-    public ResponseEntity<FileLoadResponseDTO> createFileLoad(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(fileLoadService.createFileLoad(file));
+    public ResponseEntity<FileLoadResponseDTO> createFileLoad(@RequestParam("file") MultipartFile file,
+                                                              @RequestParam(required = false) String description,
+                                                              @RequestParam(required = false) java.util.List<String> tags) {
+        FileLoadResponseDTO created = fileLoadService.createFileLoad(file);
+
+        boolean hasDescription = description != null && !description.isBlank();
+        boolean hasTags = tags != null && !tags.isEmpty();
+
+        if (created.getId() != null && (hasDescription || hasTags)) {
+            UpdateMetadataRequestDTO metadata = new UpdateMetadataRequestDTO();
+            metadata.setDescription(hasDescription ? description.trim() : null);
+            metadata.setTags(tags);
+            created = fileLoadService.updateMetadata(created.getId(), metadata);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping("/{id}")
@@ -207,5 +221,3 @@ public class FileLoadController {
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }
 }
-
-

@@ -51,22 +51,32 @@ public class FileLoadServiceImpl implements FileLoadService {
 
     @Override
     public FileLoadResponseDTO createFileLoad(MultipartFile file) {
+        return createFileLoad(file, null, null);
+    }
+
+    @Override
+    public FileLoadResponseDTO createFileLoad(MultipartFile file, String description, java.util.List<String> tags) {
         String originalFilename = normalizeOriginalFilename(file.getOriginalFilename());
+        String normalizedDescription = normalizeDescription(description);
+        String normalizedTags = toTagCsv(tags);
 
         if (!originalFilename.toLowerCase().endsWith(".csv")) {
             return createFailedUploadResponse(file, originalFilename,
-                    "Invalid file type. Only CSV files are accepted.");
+                    "Invalid file type. Only CSV files are accepted.",
+                    normalizedDescription, normalizedTags);
         }
 
         if (file.isEmpty()) {
             return createFailedUploadResponse(file, originalFilename,
-                    "File is empty.");
+                    "File is empty.",
+                    normalizedDescription, normalizedTags);
         }
 
         long maxSizeBytes = 20L * 1024 * 1024;
         if (file.getSize() > maxSizeBytes) {
             return createFailedUploadResponse(file, originalFilename,
-                    "File size exceeded. Maximum allowed is 20MB.");
+                    "File size exceeded. Maximum allowed is 20MB.",
+                    normalizedDescription, normalizedTags);
         }
 
         try {
@@ -84,6 +94,8 @@ public class FileLoadServiceImpl implements FileLoadService {
             entity.setRecordCount(0L);
             entity.setArchived(false);
             entity.setStoragePath(savedFile.toAbsolutePath().toString());
+            entity.setDescription(normalizedDescription);
+            entity.setTags(normalizedTags);
             applyCurrentUploader(entity);
 
             // Persist immediately so async batch thread can reliably load this record by id.
@@ -95,7 +107,8 @@ public class FileLoadServiceImpl implements FileLoadService {
         }
     }
 
-    private FileLoadResponseDTO createFailedUploadResponse(MultipartFile file, String filename, String errorMessage) {
+    private FileLoadResponseDTO createFailedUploadResponse(MultipartFile file, String filename, String errorMessage,
+                                                           String description, String tagsCsv) {
         FileLoad failed = new FileLoad();
         failed.setFilename(filename);
         failed.setFileType(file.getContentType() == null ? "application/octet-stream" : file.getContentType());
@@ -106,6 +119,8 @@ public class FileLoadServiceImpl implements FileLoadService {
         failed.setErrors(errorMessage);
         failed.setArchived(false);
         failed.setStoragePath("");
+        failed.setDescription(description);
+        failed.setTags(tagsCsv);
         applyCurrentUploader(failed);
 
         return fileLoadMapper.toDto(fileLoadRepository.saveAndFlush(failed));
@@ -306,6 +321,27 @@ public class FileLoadServiceImpl implements FileLoadService {
         return currentUser == null ? null : currentUser.getId();
     }
 
+    private String normalizeDescription(String description) {
+        if (description == null) {
+            return null;
+        }
+        String trimmed = description.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String toTagCsv(java.util.List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return null;
+        }
+
+        String csv = tags.stream()
+                .filter(tag -> tag != null && !tag.isBlank())
+                .map(String::trim)
+                .collect(Collectors.joining(","));
+
+        return csv.isBlank() ? null : csv;
+    }
+
     private UserAccount resolveCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -320,6 +356,4 @@ public class FileLoadServiceImpl implements FileLoadService {
         return userAccountRepository.findByEmail(email).orElse(null);
     }
 }
-
-
 

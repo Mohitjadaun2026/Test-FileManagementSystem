@@ -116,7 +116,16 @@
             </mat-form-field>
 
             <div class="edit-actions">
-              <button mat-raised-button class="btn-save" (click)="save()" [disabled]="saving">
+              <button mat-stroked-button type="button" *ngIf="!isMetadataEditing" (click)="startMetadataEdit()">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+
+              <button mat-button type="button" class="btn-cancel" *ngIf="isMetadataEditing" (click)="cancelMetadataEdit()" [disabled]="saving">
+                Cancel
+              </button>
+
+              <button mat-raised-button type="button" class="btn-save" *ngIf="isMetadataEditing" (click)="save()" [disabled]="saving">
                 <mat-icon>save</mat-icon>
                 {{ saving ? 'Saving…' : 'Save Changes' }}
               </button>

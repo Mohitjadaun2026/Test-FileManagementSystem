@@ -283,6 +283,7 @@
 .edit-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   margin-top: 8px;
 }
 
@@ -305,6 +306,11 @@
 }
 
 .btn-save[disabled] { opacity: 0.6; }
+
+.btn-cancel {
+  border-radius: 10px !important;
+  color: #475569 !important;
+}
 
 /* ---- Empty state ---- */
 .empty-state {
