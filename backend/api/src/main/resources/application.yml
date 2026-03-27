@@ -34,7 +34,7 @@ spring:
             client-authentication-method: client_secret_basic
             authorization-grant-type: authorization_code
             scope: profile,email
-            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/login/oauth2/code/google}
+            redirect-uri: ${GOOGLE_REDIRECT_URI:https://localhost:8080/login/oauth2/code/google}
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
@@ -45,11 +45,13 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
   ssl:
-    enabled: ${SERVER_SSL_ENABLED:false}
-    key-store: ${SERVER_SSL_KEY_STORE:}
-    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    enabled: ${SERVER_SSL_ENABLED:true}
+    key-store: ${SERVER_SSL_KEY_STORE:classpath:keystore-local.pfx}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:changeit123}
     key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
-    key-alias: ${SERVER_SSL_KEY_ALIAS:myapp}
+
+app:
+  frontend-base-url: ${FRONTEND_BASE_URL:https://localhost:4200}
 
 springdoc:
   api-docs:
@@ -60,5 +62,4 @@ springdoc:
 jwt:
   secret: ${JWT_SECRET:}
   expiration: ${JWT_EXPIRATION:86400000}
-
 
