@@ -79,7 +79,7 @@ loadProfileImage(): void {
           : 0;
       },
       (error) => {
-        console.error('Error loading file statistics:', error);
+        console.error('[ProfileComponent] Error loading file statistics:', error);
       }
     );
   }
