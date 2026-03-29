@@ -18,7 +18,7 @@
             <mat-icon>cloud_upload</mat-icon>
             <p>Drag & drop files here or</p>
             <small class="file-hint">
-                Only CSV files allowed • Max size: 20 MB
+                Only CSV files allowed • Max size: 50 MB
             </small>
             <button mat-stroked-button (click)="triggerFilePick()">Browse files</button>
             <input #fileInput type="file" multiple accept=".csv" (change)="onFileSelected($event)" hidden>        </div>
