@@ -172,7 +172,7 @@ public class AuthController {
 
         String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-        java.nio.file.Path path = java.nio.file.Paths.get("uploads/" + filename);
+        java.nio.file.Path path = java.nio.file.Paths.get("../uploads/" + filename);
         java.nio.file.Files.createDirectories(path.getParent());
         java.nio.file.Files.write(path, file.getBytes());
 

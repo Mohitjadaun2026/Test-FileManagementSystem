@@ -18,10 +18,9 @@ public class HttpAndHttpsConfig {
         return factory -> {
             Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
             connector.setScheme("http");
-            connector.setPort(8081); // HTTP port
+            connector.setPort(8082); // HTTP port
             connector.setSecure(false);
             factory.addAdditionalTomcatConnectors(connector);
         };
     }
 }
-

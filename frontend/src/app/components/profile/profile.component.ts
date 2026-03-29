@@ -42,7 +42,7 @@ export class ProfileComponent implements OnInit {
 
   getBackendBaseUrl(): string {
     const protocol = window.location.protocol;
-    let port = protocol === 'https:' ? '8080' : '8081';
+    let port = protocol === 'https:' ? '8080' : '8082';
     return `${protocol}//localhost:${port}`;
   }
 
@@ -168,7 +168,12 @@ export class ProfileComponent implements OnInit {
       formData.append('userId', this.currentUser.id.toString());
 
       this.auth.uploadProfileImage(formData).subscribe({
-        next: () => {
+        next: (res: any) => {
+          // Update currentUser.profileImage with the new path from backend
+          if (res && res.profileImage) {
+            this.currentUser!.profileImage = res.profileImage;
+            this.auth.updateUser(this.currentUser!);
+          }
           // Fetch the latest profile (including profileImage) after upload
           this.auth.fetchProfile().subscribe({
             next: () => {
