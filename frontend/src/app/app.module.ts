@@ -12,6 +12,8 @@ import { AppComponent } from './app.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { FileSearchComponent } from './components/file-search/file-search.component';
@@ -20,7 +22,7 @@ import { StatusUpdateComponent } from './components/status-update/status-update.
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ProfileComponent } from './components/profile/profile.component';
-import { ProfileDialogComponent } from './components/profile-dialog/profile-dialog.component'; // ✅ ADD THIS
+import { ProfileDialogComponent } from './components/profile-dialog/profile-dialog.component';
 import { OauthCallbackComponent } from './components/oauth-callback/oauth-callback.component';
 
 // Angular Material modules
@@ -35,6 +37,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
@@ -56,6 +59,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     DashboardComponent,
     LoginComponent,
     RegisterComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent,
     FileUploadComponent,
     FileListComponent,
     FileSearchComponent,
@@ -64,7 +69,7 @@ import { AuthInterceptor } from './services/auth.interceptor';
     NavbarComponent,
     FooterComponent,
     ProfileComponent,
-    ProfileDialogComponent,   // ✅ IMPORTANT
+    ProfileDialogComponent,
     OauthCallbackComponent
   ],
   imports: [
@@ -88,6 +93,7 @@ import { AuthInterceptor } from './services/auth.interceptor';
     MatSelectModule,
     MatChipsModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatSnackBarModule,
     MatListModule,
     MatMenuModule,

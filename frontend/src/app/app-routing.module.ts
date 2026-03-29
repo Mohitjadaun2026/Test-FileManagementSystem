@@ -3,6 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
 import { FileDetailsComponent } from './components/file-details/file-details.component';
@@ -11,12 +13,13 @@ import { OauthCallbackComponent } from './components/oauth-callback/oauth-callba
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
-//   { path: '', redirectTo: 'profile', pathMatch: 'full' },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
   { path: 'login', component: LoginComponent },
   { path: 'oauth/callback', component: OauthCallbackComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
 
   { path: 'dashboard', component: DashboardComponent },
 
@@ -29,7 +32,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
