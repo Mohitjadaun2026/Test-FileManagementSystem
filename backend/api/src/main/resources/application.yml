@@ -63,3 +63,7 @@ jwt:
   secret: ${JWT_SECRET:}
   expiration: ${JWT_EXPIRATION:86400000}
 
+# Note: Both HTTPS (8080) and HTTP (8081) are enabled for local backend access.
+# Make sure to register both redirect URIs in Google Console for OAuth:
+#   https://localhost:8080/login/oauth2/code/google
+#   http://localhost:8081/login/oauth2/code/google

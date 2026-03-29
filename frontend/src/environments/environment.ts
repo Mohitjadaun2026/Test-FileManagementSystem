@@ -1,4 +1,10 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://localhost:8080/api'
+  // Dynamically select API base URL based on frontend protocol
+  get apiBaseUrl() {
+    const protocol = window.location.protocol;
+    let port = protocol === 'https:' ? '8080' : '8081';
+    return `${protocol}//localhost:${port}/api`;
+  }
 };
+// Usage: environment.apiBaseUrl (as a function property)

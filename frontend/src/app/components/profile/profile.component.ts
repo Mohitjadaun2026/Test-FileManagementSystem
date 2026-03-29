@@ -40,17 +40,23 @@ export class ProfileComponent implements OnInit {
 
   }
 
-loadProfileImage(): void {
-  if (this.currentUser?.profileImage) {
-    this.profileImage =
-      'http://localhost:8080' +
-      this.currentUser.profileImage +
-      '?t=' +
-      new Date().getTime();
-  } else {
-    this.profileImage = 'assets/default-avatar.svg';
+  getBackendBaseUrl(): string {
+    const protocol = window.location.protocol;
+    let port = protocol === 'https:' ? '8080' : '8081';
+    return `${protocol}//localhost:${port}`;
   }
-}
+
+  loadProfileImage(): void {
+    if (this.currentUser?.profileImage) {
+      this.profileImage =
+        this.getBackendBaseUrl() +
+        this.currentUser.profileImage +
+        '?t=' +
+        new Date().getTime();
+    } else {
+      this.profileImage = 'assets/default-avatar.svg';
+    }
+  }
 
   loadFileStatistics(): void {
     // Fetch all files with default criteria
@@ -162,19 +168,10 @@ loadProfileImage(): void {
       formData.append('userId', this.currentUser.id.toString());
 
       this.auth.uploadProfileImage(formData).subscribe((res: any) => {
-
         const imagePath = res.profileImage;
-
-        this.profileImage = 'http://localhost:8080' + imagePath;
-
         this.currentUser!.profileImage = imagePath;
-
-
         this.auth.updateUser(this.currentUser!);
-
-
-        this.loadProfileImage();
-
+        this.loadProfileImage(); // Always reload using the latest user info
         this.finishProfileUpdate();
       });
     } else {
@@ -193,5 +190,3 @@ finishProfileUpdate(): void {
   this.isEditing = false;
   alert('Profile updated successfully!');
 }}
-
-
