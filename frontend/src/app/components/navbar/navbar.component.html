@@ -1,32 +1,46 @@
 <mat-toolbar color="primary" class="navbar">
-
-    <!-- Logo -->
-    <a routerLink="/dashboard" class="brand" aria-label="Dashboard">
-        <img src="assets/mphasis-logo.png" class="logo" alt="FileLoad logo">
-    </a>
-
-    <!-- Dashboard button -->
-    <button mat-button routerLink="/dashboard">
-        Dashboard
-    </button>
-
-    <span class="spacer"></span>
-
-    <!-- Login/Register -->
+  <!-- Hamburger icon for mobile -->
+  <button mat-icon-button class="hamburger" [matMenuTriggerFor]="mobileMenu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <!-- Logo -->
+  <a routerLink="/dashboard" class="brand" aria-label="Dashboard">
+    <img src="assets/mphasis-logo.png" class="logo" alt="FileLoad logo">
+  </a>
+  <span class="spacer"></span>
+  <!-- Desktop nav buttons (hidden on mobile) -->
+  <div class="desktop-nav">
+    <button mat-button routerLink="/dashboard">Dashboard</button>
     <ng-container *ngIf="!isLoggedIn">
-        <button mat-button routerLink="/login">Login</button>
-        <button mat-button routerLink="/register">Register</button>
+      <button mat-button routerLink="/login">Login</button>
+      <button mat-button routerLink="/register">Register</button>
     </ng-container>
-
-    <!-- Logged in actions -->
     <ng-container *ngIf="isLoggedIn">
-        <button mat-button routerLink="/files">Files</button>
-        <button mat-button routerLink="/upload">Upload</button>
-
-        <!-- ✅ PROFILE BUTTON (UPDATED → DIALOG) -->
-        <button mat-icon-button (click)="openProfileDialog()" class="profile-menu-btn">
-            <img [src]="profileImage" alt="Profile" class="profile-avatar">
-        </button>
+      <button mat-button routerLink="/files">Files</button>
+      <button mat-button routerLink="/upload">Upload</button>
     </ng-container>
-
+  </div>
+  <!-- On mobile, optionally show avatar only -->
+  <ng-container *ngIf="isLoggedIn">
+    <button mat-icon-button class="profile-menu-btn mobile-avatar" (click)="openProfileDialog()">
+      <img [src]="profileImage" alt="Profile" class="profile-avatar">
+    </button>
+  </ng-container>
 </mat-toolbar>
+
+<!-- Mobile dropdown menu -->
+<mat-menu #mobileMenu="matMenu" class="mobile-dropdown-menu">
+  <button mat-menu-item routerLink="/dashboard">Dashboard</button>
+  <ng-container *ngIf="!isLoggedIn">
+    <button mat-menu-item routerLink="/login">Login</button>
+    <button mat-menu-item routerLink="/register">Register</button>
+  </ng-container>
+  <ng-container *ngIf="isLoggedIn">
+    <button mat-menu-item routerLink="/files">Files</button>
+    <button mat-menu-item routerLink="/upload">Upload</button>
+    <button mat-menu-item (click)="openProfileDialog()">
+      <img [src]="profileImage" alt="Profile" class="profile-avatar" style="margin-right:8px;"> Profile
+    </button>
+    <button mat-menu-item (click)="logout()">Logout</button>
+  </ng-container>
+</mat-menu>
