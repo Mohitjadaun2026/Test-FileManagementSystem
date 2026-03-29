@@ -20,17 +20,23 @@ export class ProfileDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<ProfileDialogComponent>  // ✅ IMPORTANT
   ) {}
 
- ngOnInit(): void {
-   this.auth.currentUser$.subscribe((user: User | null) => {
-     this.currentUser = user;
+  getBackendBaseUrl(): string {
+    const protocol = window.location.protocol;
+    let port = protocol === 'https:' ? '8080' : '8081';
+    return `${protocol}//localhost:${port}`;
+  }
 
-     if (user?.profileImage) {
-       this.profileImage = 'http://localhost:8080' + user.profileImage;
-     } else {
-       this.profileImage = 'assets/default-avatar.svg';
-     }
-   });
- }
+  ngOnInit(): void {
+    this.auth.currentUser$.subscribe((user: User | null) => {
+      this.currentUser = user;
+
+      if (user?.profileImage) {
+        this.profileImage = this.getBackendBaseUrl() + user.profileImage;
+      } else {
+        this.profileImage = 'assets/default-avatar.svg';
+      }
+    });
+  }
 
   // ✅ FIXED
   goToProfile() {

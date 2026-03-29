@@ -87,6 +87,9 @@ export class FileListComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
+        console.error('[FileListComponent] Error loading files:', err, {
+          criteria: this.criteria
+        });
         this.snack.open(err?.error?.message ?? 'Failed to load files', 'Dismiss', { duration: 3500 });
         if (showLoader) {
           this.loading = false;
@@ -146,7 +149,10 @@ export class FileListComponent implements OnInit, OnDestroy {
         URL.revokeObjectURL(url);
         this.snack.open('Download started', 'OK', { duration: 1500 });
       },
-      error: () => this.snack.open('Download failed', 'Dismiss', { duration: 3000 })
+      error: (err) => {
+        console.error('[FileListComponent] Download failed:', err, { fileId: row.id, fileName: row.filename || row.name });
+        this.snack.open('Download failed', 'Dismiss', { duration: 3000 });
+      }
     });
   }
 
@@ -161,7 +167,10 @@ export class FileListComponent implements OnInit, OnDestroy {
         this.snack.open('File deleted', 'OK', { duration: 1500 });
         this.fetch(true);
       },
-      error: () => this.snack.open('Delete failed', 'Dismiss', { duration: 3000 })
+      error: (err) => {
+        console.error('[FileListComponent] Delete failed:', err, { fileId: row.id, fileName: row.filename || row.name });
+        this.snack.open('Delete failed', 'Dismiss', { duration: 3000 });
+      }
     });
   }
 
@@ -221,7 +230,8 @@ export class FileListComponent implements OnInit, OnDestroy {
         await firstValueFrom(this.api.delete(id));
         this.selectedIds.delete(id);
         successCount++;
-      } catch {
+      } catch (err) {
+        console.error('[FileListComponent] Bulk delete failed for file:', id, err);
         failureCount++;
       }
     }
@@ -251,10 +261,14 @@ export class FileListComponent implements OnInit, OnDestroy {
           await firstValueFrom(this.api.delete(id));
           this.selectedIds.delete(id);
           successCount++;
-        } catch {
+        } catch (err) {
+          console.error('[FileListComponent] Bulk deleteAllMatching failed for file:', id, err);
           failureCount++;
         }
       }
+    } catch (err) {
+      console.error('[FileListComponent] Error fetching all matching IDs for deleteAllMatching:', err);
+      failureCount = this.total;
     } finally {
       this.isBulkDeleting = false;
       this.loading = false;
@@ -271,10 +285,15 @@ export class FileListComponent implements OnInit, OnDestroy {
 
     while (page < totalPages) {
       const criteria = { ...this.criteria, page, size: pageSize };
-      const res = await firstValueFrom(this.api.myList(criteria));
-      res.items.forEach((item) => ids.push(Number(item.id)));
-      totalPages = Math.max(1, Math.ceil((res.total || 0) / pageSize));
-      page++;
+      try {
+        const res = await firstValueFrom(this.api.myList(criteria));
+        res.items.forEach((item) => ids.push(Number(item.id)));
+        totalPages = Math.max(1, Math.ceil((res.total || 0) / pageSize));
+        page++;
+      } catch (err) {
+        console.error('[FileListComponent] Error fetching page for fetchAllMatchingIds:', { page, criteria }, err);
+        throw err;
+      }
     }
 
     return ids;

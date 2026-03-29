@@ -714,3 +714,80 @@ body, html {
     transform: translateX(110%);
   }
 }
+
+/* -------------------- Responsive Adjustments -------------------- */
+
+/* For Tablets and smaller desktops (under 1024px) */
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: 1fr; /* Stack the hero copy and metrics panel */
+  }
+
+  .dashboard-container {
+    padding: 60px 20px 40px;
+  }
+}
+
+/* For Mobile Devices (under 768px) */
+@media (max-width: 768px) {
+  .section-heading h2 {
+    font-size: 1.6rem; /* Smaller headings for mobile */
+  }
+
+  .hero-copy {
+    padding: 30px 24px;
+    border-radius: 20px;
+  }
+
+  .hero-copy h1 {
+    font-size: 2.2rem; /* Scale down the main title */
+  }
+
+  .hero-actions {
+    flex-direction: column; /* Stack buttons vertically */
+    width: 100%;
+  }
+
+  .hero-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr; /* Stack metrics into a single column */
+  }
+
+  .feature-grid,
+  .steps-grid,
+  .benefit-grid,
+  .action-grid {
+    grid-template-columns: 1fr; /* Ensure all grids stack on mobile */
+    gap: 16px;
+  }
+
+  .hero-highlights {
+    justify-content: center;
+  }
+
+  .highlight-item {
+    width: 100%; /* Make highlights full width */
+    justify-content: flex-start;
+  }
+}
+
+/* For very small screens (under 480px) */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding-top: 40px;
+  }
+
+  .hero-copy h1 {
+    font-size: 1.8rem;
+  }
+
+  .status-row {
+    flex-direction: column; /* Stack status rows if text is too long */
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

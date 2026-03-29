@@ -22,25 +22,31 @@ export class NavbarComponent implements OnInit {
     private dialog: MatDialog
   ) {}
 
-ngOnInit(): void {
-  this.auth.currentUser$.subscribe((user: User | null) => {
-    this.isLoggedIn = !!user;
+  getBackendBaseUrl(): string {
+    const protocol = window.location.protocol;
+    let port = protocol === 'https:' ? '8080' : '8081';
+    return `${protocol}//localhost:${port}`;
+  }
 
-    // 🔥 ALWAYS reload latest user from localStorage
-    const storedUser = localStorage.getItem('fl_user');
-    this.currentUser = storedUser ? JSON.parse(storedUser) : user;
+  ngOnInit(): void {
+    this.auth.currentUser$.subscribe((user: User | null) => {
+      this.isLoggedIn = !!user;
 
-    if (this.currentUser?.profileImage) {
-      this.profileImage =
-        'http://localhost:8080' +
-        this.currentUser.profileImage +
-        '?t=' +
-        new Date().getTime();
-    } else {
-      this.profileImage = 'assets/default-avatar.svg';
-    }
-  });
-}
+      // 🔥 ALWAYS reload latest user from localStorage
+      const storedUser = localStorage.getItem('fl_user');
+      this.currentUser = storedUser ? JSON.parse(storedUser) : user;
+
+      if (this.currentUser?.profileImage) {
+        this.profileImage =
+          this.getBackendBaseUrl() +
+          this.currentUser.profileImage +
+          '?t=' +
+          new Date().getTime();
+      } else {
+        this.profileImage = 'assets/default-avatar.svg';
+      }
+    });
+  }
 
   openProfileDialog(): void {
     this.dialog.open(ProfileDialogComponent, {

@@ -25,6 +25,12 @@ public class UserAccount {
     @Column(name = "profile_image")
     private String profileImage;
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "account_locked_until")
+    private java.time.LocalDateTime accountLockedUntil;
+
     public Long getId() {
         return id;
     }
@@ -72,5 +78,20 @@ public class UserAccount {
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
-}
 
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public java.time.LocalDateTime getAccountLockedUntil() {
+        return accountLockedUntil;
+    }
+
+    public void setAccountLockedUntil(java.time.LocalDateTime accountLockedUntil) {
+        this.accountLockedUntil = accountLockedUntil;
+    }
+}

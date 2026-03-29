@@ -34,25 +34,38 @@ export class AuthService {
   }
 
   login(payload: { login: string; password: string }): Observable<User> {
+    console.log('[AuthService] Login attempt for:', payload.login);
     return this.http.post<User>(`${environment.apiBaseUrl}/auth/login`, payload).pipe(
-      tap((user) => {
-        this.saveUser(user);
-        this.currentUserSubject.next(user);
+      tap({
+        next: (user) => {
+          console.log('[AuthService] Login successful for:', user.email || user.username);
+          this.saveUser(user);
+          this.currentUserSubject.next(user);
+        },
+        error: (err) => {
+          console.error('[AuthService] Login failed for:', payload.login, err);
+        }
       })
     );
   }
 
   register(payload: { name: string; email: string; password: string }): Observable<User> {
+    console.log('[AuthService] Register attempt for:', payload.email);
     const body = {
       username: payload.name,
       email: payload.email,
       password: payload.password
     };
-
-    return this.http.post<User>(`${environment.apiBaseUrl}/auth/register`, body);
+    return this.http.post<User>(`${environment.apiBaseUrl}/auth/register`, body).pipe(
+      tap({
+        next: (user) => console.log('[AuthService] Registration successful for:', user.email || user.username),
+        error: (err) => console.error('[AuthService] Registration failed for:', payload.email, err)
+      })
+    );
   }
 
   logout() {
+    console.log('[AuthService] Logging out user:', this.currentUserSubject.value?.email || this.currentUserSubject.value?.username);
     this.saveUser(null);
     this.currentUserSubject.next(null);
     this.router.navigate(['/']);

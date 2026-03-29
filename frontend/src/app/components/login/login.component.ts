@@ -30,13 +30,16 @@ export class LoginComponent {
   submit() {
     if (this.form.invalid) return;
     this.loading = true;
+    console.log('[LoginComponent] Login form submitted for:', this.form.value.login);
     this.auth.login(this.form.value as any).subscribe({
       next: () => {
+        console.log('[LoginComponent] Login successful for:', this.form.value.login);
         this.snack.open('Welcome back!', 'OK', { duration: 2000 });
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
         this.router.navigateByUrl(returnUrl || '/files');
       },
       error: (err) => {
+        console.error('[LoginComponent] Login failed for:', this.form.value.login, err);
         this.snack.open(err?.error?.message ?? 'Login failed', 'Dismiss', { duration: 3500 });
         this.loading = false;
       }

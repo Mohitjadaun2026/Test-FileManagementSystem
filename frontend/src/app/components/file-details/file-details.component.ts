@@ -17,6 +17,7 @@ export class FileDetailsComponent implements OnInit {
   file?: FileItem;
   saving = false;
   loading = true;
+  isMetadataEditing = false;
 
   form = this.fb.group({
     description: [''],
@@ -46,6 +47,8 @@ export class FileDetailsComponent implements OnInit {
           description: f.description || '',
           tags: (f.tags || []).join(', ')
         });
+        this.form.disable({ emitEvent: false });
+        this.isMetadataEditing = false;
         this.loading = false;
       },
       error: () => {
@@ -55,8 +58,26 @@ export class FileDetailsComponent implements OnInit {
     });
   }
 
-  save() {
+  startMetadataEdit() {
     if (!this.file) return;
+    this.isMetadataEditing = true;
+    this.form.enable({ emitEvent: false });
+  }
+
+  cancelMetadataEdit() {
+    if (!this.file) return;
+
+    this.form.patchValue({
+      description: this.file.description || '',
+      tags: (this.file.tags || []).join(', ')
+    });
+
+    this.form.disable({ emitEvent: false });
+    this.isMetadataEditing = false;
+  }
+
+  save() {
+    if (!this.file || !this.isMetadataEditing) return;
     this.saving = true;
     const { description, tags } = this.form.value;
     const body: Partial<FileItem> = {
@@ -67,6 +88,12 @@ export class FileDetailsComponent implements OnInit {
       next: (res) => {
         this.snack.open('Saved successfully', 'OK', { duration: 1500 });
         this.file = res;
+        this.form.patchValue({
+          description: res.description || '',
+          tags: (res.tags || []).join(', ')
+        });
+        this.form.disable({ emitEvent: false });
+        this.isMetadataEditing = false;
         this.saving = false;
       },
       error: () => {

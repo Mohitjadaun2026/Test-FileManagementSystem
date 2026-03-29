@@ -40,23 +40,29 @@ export class ProfileComponent implements OnInit {
 
   }
 
-loadProfileImage(): void {
-  if (this.currentUser?.profileImage) {
-    this.profileImage =
-      'http://localhost:8080' +
-      this.currentUser.profileImage +
-      '?t=' +
-      new Date().getTime(); // 🔥 cache fix
-  } else {
-    this.profileImage = 'assets/default-avatar.svg';
+  getBackendBaseUrl(): string {
+    const protocol = window.location.protocol;
+    let port = protocol === 'https:' ? '8080' : '8081';
+    return `${protocol}//localhost:${port}`;
   }
-}
+
+  loadProfileImage(): void {
+    if (this.currentUser?.profileImage) {
+      this.profileImage =
+        this.getBackendBaseUrl() +
+        this.currentUser.profileImage +
+        '?t=' +
+        new Date().getTime();
+    } else {
+      this.profileImage = 'assets/default-avatar.svg';
+    }
+  }
 
   loadFileStatistics(): void {
     // Fetch all files with default criteria
     const criteria: SearchCriteria = {
       page: 0,
-      size: 1000  // Get all files (adjust if needed)
+      size: 1000  // Get all files
     };
 
     this.fileService.myList(criteria).subscribe(
@@ -79,7 +85,7 @@ loadProfileImage(): void {
           : 0;
       },
       (error) => {
-        console.error('Error loading file statistics:', error);
+        console.error('[ProfileComponent] Error loading file statistics:', error);
       }
     );
   }
@@ -162,30 +168,22 @@ loadProfileImage(): void {
       formData.append('userId', this.currentUser.id.toString());
 
       this.auth.uploadProfileImage(formData).subscribe((res: any) => {
-
-        const imagePath = res.profileImage; // ✅ FIX
-
-        this.profileImage = 'http://localhost:8080' + imagePath;
-
+        const imagePath = res.profileImage;
         this.currentUser!.profileImage = imagePath;
-
-        // ✅ SIMPLE & CORRECT
         this.auth.updateUser(this.currentUser!);
-
-        // 🔥 force UI refresh
-        this.loadProfileImage();
-
+        this.loadProfileImage(); // Always reload using the latest user info
         this.finishProfileUpdate();
       });
     } else {
       this.finishProfileUpdate();
     }
   }
+
 finishProfileUpdate(): void {
   if (this.newName.trim() && this.currentUser) {
     this.currentUser.name = this.newName;
 
-    // ✅ keep it simple
+
     this.auth.updateUser(this.currentUser!);
   }
 
