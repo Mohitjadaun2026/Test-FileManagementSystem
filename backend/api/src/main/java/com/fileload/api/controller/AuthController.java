@@ -7,10 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletResponse;
 import com.fileload.api.security.JwtUtil;
 import com.fileload.dao.repository.UserAccountRepository;
-import com.fileload.model.dto.AuthResponseDTO;
-import com.fileload.model.dto.LoginRequestDTO;
-import com.fileload.model.dto.RegisterRequestDTO;
+import com.fileload.model.dto.*;
 import com.fileload.model.entity.UserAccount;
+import com.fileload.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,27 +32,31 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final PasswordResetService passwordResetService;
 
     public AuthController(UserAccountRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           AuthenticationManager authenticationManager,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil,
+                          PasswordResetService passwordResetService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.passwordResetService = passwordResetService;
     }
 
+    // ---------------- REGISTER ----------------
     @PostMapping("/register")
     @Operation(summary = "Register user")
     public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
         logger.info("Register API called for email: {} and username: {}", request.getEmail(), request.getUsername());
+
         if (userRepository.existsByEmail(request.getEmail())) {
-            logger.warn("Registration failed: Email already exists - {}", request.getEmail());
             throw new IllegalArgumentException("Email already exists");
         }
+
         if (userRepository.existsByUsername(request.getUsername())) {
-            logger.warn("Registration failed: Username already exists - {}", request.getUsername());
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -62,64 +65,102 @@ public class AuthController {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole("USER");
-        user = userRepository.save(user);
 
-        logger.info("User registered successfully: {}", user.getEmail());
+        user = userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(toAuthResponse(user, token));
     }
 
+    // ---------------- LOGIN ----------------
     @PostMapping("/login")
     @Operation(summary = "Login user")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
-        logger.info("Login API called for login: {}", request.getLogin());
+
         String login = request.getLogin().trim();
+
         UserAccount user = userRepository.findByEmailOrUsername(login, login)
                 .orElse(null);
+
         if (user == null) {
-            logger.warn("Login failed: user not found for login: {}", login);
-            // Do not reveal if user exists
             throw new IllegalArgumentException("Invalid credentials");
         }
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        if (user.getAccountLockedUntil() != null && user.getAccountLockedUntil().isAfter(now)) {
-            long minutesLeft = java.time.Duration.between(now, user.getAccountLockedUntil()).toMinutes();
-            logger.warn("Account locked for user: {} until {}", login, user.getAccountLockedUntil());
-            throw new IllegalArgumentException("Account locked due to too many failed login attempts. Try again in " + minutesLeft + " minute(s).");
-        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(login, request.getPassword())
             );
-        } catch (org.springframework.security.core.AuthenticationException ex) {
-            int attempts = user.getFailedLoginAttempts() + 1;
-            user.setFailedLoginAttempts(attempts);
-            if (attempts >= 5) {
-                user.setAccountLockedUntil(now.plusMinutes(30));
-                logger.warn("User {} locked out until {} after {} failed attempts", login, user.getAccountLockedUntil(), attempts);
-            }
-            userRepository.save(user);
-            throw new IllegalArgumentException(attempts >= 5 ?
-                "Account locked due to too many failed login attempts. Try again in 30 minutes." :
-                "Invalid credentials. " + (5 - attempts) + " attempt(s) left before lockout.");
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid credentials");
         }
-        // Successful login: reset attempts and lockout
-        user.setFailedLoginAttempts(0);
-        user.setAccountLockedUntil(null);
-        userRepository.save(user);
-        logger.info("User login successful: {}", user.getEmail());
+
         String token = jwtUtil.generateToken(user.getEmail());
         return ResponseEntity.ok(toAuthResponse(user, token));
     }
 
+    // ---------------- FORGOT PASSWORD ----------------
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset")
+    public ResponseEntity<ResetPasswordResponseDTO> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDTO request) {
+
+        try {
+            passwordResetService.requestPasswordReset(request.getEmail());
+
+            return ResponseEntity.ok(
+                    new ResetPasswordResponseDTO(true, "Password reset link sent to your email")
+            );
+
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                    new ResetPasswordResponseDTO(true,
+                            "If an account exists, a reset link has been sent")
+            );
+        }
+    }
+
+    // ---------------- VALIDATE TOKEN ----------------
+    @GetMapping("/validate-reset-token/{token}")
+    public ResponseEntity<ResetPasswordResponseDTO> validateResetToken(@PathVariable String token) {
+
+        boolean isValid = passwordResetService.validateResetToken(token);
+
+        if (isValid) {
+            return ResponseEntity.ok(new ResetPasswordResponseDTO(true, "Valid token"));
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResetPasswordResponseDTO(false, "Invalid or expired token"));
+    }
+
+    // ---------------- RESET PASSWORD ----------------
+    @PostMapping("/reset-password")
+    public ResponseEntity<ResetPasswordResponseDTO> resetPassword(
+            @Valid @RequestBody ResetPasswordRequestDTO request) {
+
+        try {
+            passwordResetService.resetPassword(
+                    request.getToken(),
+                    request.getNewPassword()
+            );
+
+            return ResponseEntity.ok(
+                    new ResetPasswordResponseDTO(true, "Password reset successful")
+            );
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResetPasswordResponseDTO(false, e.getMessage()));
+        }
+    }
+
+    // ---------------- GOOGLE LOGIN ----------------
     @GetMapping("/oauth2/google")
-    @Operation(summary = "Start Google OAuth2 login")
     public void googleOauthLogin(HttpServletResponse response) throws IOException {
-        logger.info("Google OAuth2 login initiated");
         response.sendRedirect("/oauth2/authorization/google");
     }
 
+    // ---------------- PROFILE UPLOAD ----------------
     @PostMapping("/upload-profile")
     public ResponseEntity<java.util.Map<String, String>> uploadProfile(
             @RequestParam("file") MultipartFile file,
@@ -141,6 +182,7 @@ public class AuthController {
         return ResponseEntity.ok(java.util.Map.of("profileImage", user.getProfileImage()));
     }
 
+    // ---------------- PROFILE GET ----------------
     @GetMapping("/profile")
     public ResponseEntity<AuthResponseDTO> getProfile(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
@@ -150,6 +192,7 @@ public class AuthController {
         return ResponseEntity.ok(toAuthResponse(user, token));
     }
 
+    // ---------------- HELPER ----------------
     private AuthResponseDTO toAuthResponse(UserAccount user, String token) {
         AuthResponseDTO dto = new AuthResponseDTO();
         dto.setId(user.getId());
@@ -161,4 +204,3 @@ public class AuthController {
         return dto;
     }
 }
-
