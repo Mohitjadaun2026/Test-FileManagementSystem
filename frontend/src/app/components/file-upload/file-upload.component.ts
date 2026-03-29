@@ -15,6 +15,18 @@ interface UploadItem {
   finishTimer?: ReturnType<typeof setTimeout>;
 }
 
+interface UploadItemPersisted {
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+  progress: number;
+  state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
+  selected?: boolean;
+}
+
+const UPLOADS_STORAGE_KEY = 'fileUploadQueue';
+
 @Component({
   selector: 'app-file-upload',
   templateUrl: './file-upload.component.html',
@@ -70,6 +82,28 @@ export class FileUploadComponent {
     return this.uploads.filter(
       (u) => u.selected && (u.state === 'queued' || u.state === 'uploading')
     ).length;
+  }
+
+  get allSelected(): boolean {
+    return this.uploads.length > 0 && this.uploads.every(u => u.selected);
+  }
+
+  get someSelected(): boolean {
+    return this.uploads.some(u => u.selected) && !this.allSelected;
+  }
+
+  get selectedCount(): number {
+    return this.uploads.filter(u => u.selected).length;
+  }
+
+  get anySelected(): boolean {
+    return this.selectedCount > 0;
+  }
+
+  toggleSelectAll(checked: boolean) {
+    for (const u of this.uploads) {
+      u.selected = checked;
+    }
   }
 
   onFileSelected(ev: Event) {
@@ -132,6 +166,7 @@ export class FileUploadComponent {
         selected: false
       });
     }
+    this.updateAndPersistUploads();
   }
 
   startUploads() {
@@ -196,6 +231,7 @@ export class FileUploadComponent {
 
         next.state = 'error';
         next.sub = undefined;
+        this.updateAndPersistUploads();
 
         this.snack.open(`Upload failed: ${next.file.name}`, 'Dismiss', {
           duration: 3500
@@ -205,6 +241,7 @@ export class FileUploadComponent {
       },
       complete: () => {
         next.sub = undefined;
+        this.updateAndPersistUploads();
       }
     });
   }
@@ -236,6 +273,7 @@ export class FileUploadComponent {
     item.state = 'canceled';
     item.progress = 0;
     item.selected = false;
+    this.updateAndPersistUploads();
 
     if (!options?.silent) {
       this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', {
@@ -277,6 +315,7 @@ export class FileUploadComponent {
     this.uploads = this.uploads.filter(
       (u) => u.state !== 'done' && u.state !== 'error' && u.state !== 'canceled'
     );
+    this.updateAndPersistUploads();
 
     const removed = before - this.uploads.length;
     if (removed > 0) {
@@ -290,7 +329,59 @@ export class FileUploadComponent {
     }
   }
 
+  removeSelected() {
+    const before = this.uploads.length;
+    this.uploads = this.uploads.filter(u => !u.selected);
+    this.updateAndPersistUploads();
+    const removed = before - this.uploads.length;
+    if (removed > 0) {
+      this.snack.open(`Removed ${removed} file(s) from queue`, 'OK', { duration: 1600 });
+    } else {
+      this.snack.open('No files selected to remove', 'OK', { duration: 1600 });
+    }
+  }
+
   triggerFilePick() {
     this.fileInput.nativeElement.click();
   }
+
+  ngOnInit() {
+    this.restoreUploadsFromStorage();
+  }
+
+  private persistUploadsToStorage() {
+    const persisted = this.uploads.map(u => ({
+      name: u.file?.name,
+      size: u.file?.size,
+      type: u.file?.type,
+      lastModified: u.file?.lastModified,
+      progress: u.progress,
+      state: u.state,
+      selected: u.selected
+    }));
+    localStorage.setItem(UPLOADS_STORAGE_KEY, JSON.stringify(persisted));
+  }
+
+  private restoreUploadsFromStorage() {
+    const raw = localStorage.getItem(UPLOADS_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const arr: UploadItemPersisted[] = JSON.parse(raw);
+      this.uploads = arr.map(item => {
+        // Try to find a matching File in the current session (not possible after reload)
+        // So, create a placeholder object with only metadata
+        return {
+          file: { name: item.name, size: item.size, type: item.type, lastModified: item.lastModified } as File,
+          progress: item.progress,
+          state: item.state,
+          selected: item.selected,
+        };
+      });
+    } catch {}
+  }
+
+  private updateAndPersistUploads() {
+    this.persistUploadsToStorage();
+  }
 }
+

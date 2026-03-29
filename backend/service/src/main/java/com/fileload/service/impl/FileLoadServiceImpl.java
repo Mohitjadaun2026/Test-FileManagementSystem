@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -162,6 +163,11 @@ public class FileLoadServiceImpl implements FileLoadService {
     @Transactional(readOnly = true)
     public FileLoadResponseDTO getFileLoadById(Long id) {
         FileLoad entity = fetchById(id);
+        Long currentUserId = resolveCurrentUserId();
+        System.out.println("[SECURITY] getFileLoadById: fileId=" + id + ", fileOwner=" + entity.getUploadedById() + ", currentUser=" + currentUserId);
+        if (!currentUserIdEquals(entity.getUploadedById(), currentUserId)) {
+            throw new AccessDeniedException("You do not have permission to access this file.");
+        }
         return fileLoadMapper.toDto(entity);
     }
 
@@ -246,6 +252,11 @@ public class FileLoadServiceImpl implements FileLoadService {
     @Transactional(readOnly = true)
     public byte[] downloadFile(Long id) {
         FileLoad entity = fetchById(id);
+        Long currentUserId = resolveCurrentUserId();
+        System.out.println("[SECURITY] downloadFile: fileId=" + id + ", fileOwner=" + entity.getUploadedById() + ", currentUser=" + currentUserId);
+        if (!currentUserIdEquals(entity.getUploadedById(), currentUserId)) {
+            throw new AccessDeniedException("You do not have permission to download this file.");
+        }
         try {
             return Files.readAllBytes(Path.of(entity.getStoragePath()));
         } catch (IOException ex) {
@@ -354,6 +365,10 @@ public class FileLoadServiceImpl implements FileLoadService {
         }
 
         return userAccountRepository.findByEmail(email).orElse(null);
+    }
+
+    private boolean currentUserIdEquals(Long ownerId, Long currentUserId) {
+        return ownerId != null && currentUserId != null && ownerId.equals(currentUserId);
     }
 }
 

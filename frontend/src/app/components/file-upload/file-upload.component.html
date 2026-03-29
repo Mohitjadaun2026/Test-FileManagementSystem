@@ -36,9 +36,14 @@
         </div>
 
         <div class="queue-tools">
-            <span class="queue-help">Select files you want to cancel</span>
-            <button mat-button color="warn" (click)="cancelSelected()" [disabled]="selectedCancelableCount === 0">
-                Cancel Selected ({{ selectedCancelableCount }})
+            <mat-checkbox
+                [checked]="allSelected"
+                [indeterminate]="someSelected"
+                (change)="toggleSelectAll($event.checked)"
+            >Select All</mat-checkbox>
+            <span class="queue-help">Select files you want to remove</span>
+            <button mat-button color="warn" (click)="removeSelected()" [disabled]="!anySelected">
+                Remove ({{ selectedCount }})
             </button>
         </div>
 
@@ -47,7 +52,6 @@
                 <input
                     class="row-select"
                     type="checkbox"
-                    *ngIf="u.state === 'queued' || u.state === 'uploading'"
                     [(ngModel)]="u.selected"
                     [ngModelOptions]="{ standalone: true }"
                     [attr.aria-label]="'Select ' + u.file.name"

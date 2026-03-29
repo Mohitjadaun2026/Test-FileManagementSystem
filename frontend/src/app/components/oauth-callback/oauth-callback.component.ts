@@ -29,6 +29,7 @@ export class OauthCallbackComponent implements OnInit {
       return;
     }
 
+    // Store a minimal user with token so we can make authenticated requests
     this.auth.updateUser({
       id,
       email,
@@ -37,7 +38,16 @@ export class OauthCallbackComponent implements OnInit {
       token
     });
 
-    this.snack.open('Google login successful', 'OK', { duration: 2000 });
-    this.router.navigate(['/files'], { replaceUrl: true });
+    // Now fetch the full user profile (including profileImage)
+    this.auth.fetchProfile().subscribe({
+      next: () => {
+        this.snack.open('Google login successful', 'OK', { duration: 2000 });
+        this.router.navigate(['/files'], { replaceUrl: true });
+      },
+      error: () => {
+        this.snack.open('Google login failed to fetch profile.', 'Dismiss', { duration: 3500 });
+        this.router.navigate(['/login'], { replaceUrl: true });
+      }
+    });
   }
 }

@@ -26,14 +26,14 @@
 
     <mat-form-field appearance="outline" class="f-date">
       <mat-label>Start Date</mat-label>
-      <input matInput [matDatepicker]="df" formControlName="startDate">
+      <input matInput [matDatepicker]="df" formControlName="startDate" [max]="today">
       <mat-datepicker-toggle matSuffix [for]="df"></mat-datepicker-toggle>
       <mat-datepicker #df></mat-datepicker>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="f-date">
       <mat-label>End Date</mat-label>
-      <input matInput [matDatepicker]="dt" formControlName="endDate">
+      <input matInput [matDatepicker]="dt" formControlName="endDate" [max]="today">
       <mat-datepicker-toggle matSuffix [for]="dt"></mat-datepicker-toggle>
       <mat-datepicker #dt></mat-datepicker>
     </mat-form-field>

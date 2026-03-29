@@ -49,6 +49,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 // Interceptors
 import { AuthInterceptor } from './services/auth.interceptor';
@@ -104,7 +105,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
     MatBadgeModule,
     MatFormFieldModule,
     MatDividerModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSidenavModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
