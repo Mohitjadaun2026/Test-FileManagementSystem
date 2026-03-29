@@ -83,4 +83,19 @@ export class AuthService {
   uploadProfileImage(formData: FormData) {
     return this.http.post(`${environment.apiBaseUrl}/auth/upload-profile`, formData);
   }
+
+  // Fetch the latest user profile from the backend (including profileImage)
+  fetchProfile(): Observable<User> {
+    return this.http.get<User>(`${environment.apiBaseUrl}/auth/profile`).pipe(
+      tap({
+        next: (user) => {
+          this.saveUser(user);
+          this.currentUserSubject.next(user);
+        },
+        error: (err) => {
+          console.error('[AuthService] Failed to fetch user profile:', err);
+        }
+      })
+    );
+  }
 }

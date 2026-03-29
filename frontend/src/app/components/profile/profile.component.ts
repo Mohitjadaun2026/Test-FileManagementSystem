@@ -167,12 +167,22 @@ export class ProfileComponent implements OnInit {
       formData.append('file', this.selectedFile);
       formData.append('userId', this.currentUser.id.toString());
 
-      this.auth.uploadProfileImage(formData).subscribe((res: any) => {
-        const imagePath = res.profileImage;
-        this.currentUser!.profileImage = imagePath;
-        this.auth.updateUser(this.currentUser!);
-        this.loadProfileImage(); // Always reload using the latest user info
-        this.finishProfileUpdate();
+      this.auth.uploadProfileImage(formData).subscribe({
+        next: () => {
+          // Fetch the latest profile (including profileImage) after upload
+          this.auth.fetchProfile().subscribe({
+            next: () => {
+              this.loadProfileImage();
+              this.finishProfileUpdate();
+            },
+            error: () => {
+              this.finishProfileUpdate();
+            }
+          });
+        },
+        error: () => {
+          this.finishProfileUpdate();
+        }
       });
     } else {
       this.finishProfileUpdate();

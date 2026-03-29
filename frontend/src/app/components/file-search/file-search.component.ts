@@ -1,6 +1,7 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { SearchCriteria } from '../../models/search-criteria.model';
 
 @Component({
@@ -23,18 +24,24 @@ export class FileSearchComponent implements OnInit, OnDestroy {
     recordCountMax: ['']
   });
 
+  today = new Date();
+
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.formChangesSub = this.form.valueChanges.subscribe(() => {
-      const wasFilterActive = this.isFilterActive;
-      this.isFilterActive = this.hasAnyFilterValue();
+    this.formChangesSub = this.form.valueChanges
+      .pipe(debounceTime(300))
+      .subscribe(() => {
+        const wasFilterActive = this.isFilterActive;
+        this.isFilterActive = this.hasAnyFilterValue();
 
-      // If user manually clears all filters, restore the default unfiltered list automatically.
-      if (wasFilterActive && !this.isFilterActive) {
-        this.emitDefaultSearch();
-      }
-    });
+        // If user manually clears all filters, restore the default unfiltered list automatically.
+        if (wasFilterActive && !this.isFilterActive) {
+          this.emitDefaultSearch();
+        } else {
+          this.submit(); // Auto-filter on any change
+        }
+      });
   }
 
   ngOnDestroy(): void {

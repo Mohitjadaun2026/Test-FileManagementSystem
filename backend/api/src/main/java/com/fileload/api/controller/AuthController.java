@@ -141,6 +141,15 @@ public class AuthController {
         return ResponseEntity.ok(java.util.Map.of("profileImage", user.getProfileImage()));
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<AuthResponseDTO> getProfile(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = jwtUtil.extractUsername(token);
+        UserAccount user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(toAuthResponse(user, token));
+    }
+
     private AuthResponseDTO toAuthResponse(UserAccount user, String token) {
         AuthResponseDTO dto = new AuthResponseDTO();
         dto.setId(user.getId());
