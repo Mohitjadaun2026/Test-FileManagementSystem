@@ -24,7 +24,7 @@ export class NavbarComponent implements OnInit {
 
   getBackendBaseUrl(): string {
     const protocol = window.location.protocol;
-    let port = protocol === 'https:' ? '8080' : '8081';
+    let port = protocol === 'https:' ? '8080' : '8082';
     return `${protocol}//localhost:${port}`;
   }
 

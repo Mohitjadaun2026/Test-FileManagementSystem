@@ -44,14 +44,13 @@ spring:
             jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
   mail:
     host: ${MAIL_SMTP_HOST:smtp.gmail.com}
-    port: ${MAIL_SMTP_PORT:587}
+    port: ${MAIL_SMTP_PORT:465}
     username: ${MAIL_SMTP_USERNAME:}
     password: ${MAIL_SMTP_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: true
-          starttls:
+          ssl:
             enable: true
     from: ${MAIL_FROM:}
 server:
