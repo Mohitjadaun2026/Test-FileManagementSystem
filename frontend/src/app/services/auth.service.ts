@@ -98,4 +98,21 @@ export class AuthService {
       })
     );
   }
+
+  /**
+   * Returns the correct profile image URL for a user, with cache-busting.
+   * Falls back to default avatar if not set.
+   */
+  getProfileImageUrl(user: User | null): string {
+    if (user?.profileImage) {
+      const protocol = window.location.protocol;
+      let port = protocol === 'https:' ? '8080' : '8082';
+      return (
+        `${protocol}//localhost:${port}` +
+        user.profileImage +
+        '?t=' + new Date().getTime()
+      );
+    }
+    return 'assets/default-avatar.svg';
+  }
 }

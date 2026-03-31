@@ -23,7 +23,7 @@
   <!-- On mobile, optionally show avatar only -->
   <ng-container *ngIf="isLoggedIn">
     <button mat-icon-button class="profile-menu-btn mobile-avatar" (click)="openProfileDialog()">
-      <img [src]="profileImage" alt="Profile" class="profile-avatar">
+      <img [src]="profileImage" alt="Profile" class="profile-avatar" (error)="profileImage='assets/default-avatar.svg'">
     </button>
   </ng-container>
 </mat-toolbar>
@@ -39,7 +39,7 @@
     <button mat-menu-item routerLink="/files">Files</button>
     <button mat-menu-item routerLink="/upload">Upload</button>
     <button mat-menu-item (click)="openProfileDialog()">
-      <img [src]="profileImage" alt="Profile" class="profile-avatar" style="margin-right:8px;"> Profile
+      <img [src]="profileImage" alt="Profile" class="profile-avatar" style="margin-right:8px;" (error)="profileImage='assets/default-avatar.svg'"> Profile
     </button>
     <button mat-menu-item (click)="logout()">Logout</button>
   </ng-container>

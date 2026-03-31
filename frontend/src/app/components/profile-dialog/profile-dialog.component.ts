@@ -29,12 +29,7 @@ export class ProfileDialogComponent implements OnInit {
   ngOnInit(): void {
     this.auth.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
-
-      if (user?.profileImage) {
-        this.profileImage = this.getBackendBaseUrl() + user.profileImage;
-      } else {
-        this.profileImage = 'assets/default-avatar.svg';
-      }
+      this.profileImage = this.auth.getProfileImageUrl(user);
     });
   }
 

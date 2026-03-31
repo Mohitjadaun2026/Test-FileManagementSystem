@@ -1,6 +1,6 @@
 <div class="profile-container">
   <div class="profile-header" *ngIf="currentUser && !isEditing">
-    <img [src]="profileImage" alt="Profile" class="profile-image">
+    <img [src]="profileImage" alt="Profile" class="profile-image" (error)="profileImage='assets/default-avatar.svg'">
     <div class="user-info">
       <h1>{{ currentUser.name || currentUser.username || 'User' }}</h1>
       <p>{{ currentUser.email }}</p>
@@ -16,7 +16,7 @@
     <div class="edit-form">
       <div class="profile-image-upload" (click)="fileInput.click()">
         <div class="image-wrapper">
-          <img [src]="profileImage" alt="Profile" class="profile-image-preview">
+          <img [src]="profileImage" alt="Profile" class="profile-image-preview" (error)="profileImage='assets/default-avatar.svg'">
 
           <!-- Overlay -->
           <div class="overlay">
