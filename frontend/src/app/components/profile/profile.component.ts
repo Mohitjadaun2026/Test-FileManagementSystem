@@ -35,6 +35,9 @@ export class ProfileComponent implements OnInit {
         this.newName = user.name || user.username || '';
         this.loadProfileImage();
         this.loadFileStatistics();
+      } else {
+        // Reset profile image to default on logout or no user
+        this.profileImage = 'assets/default-avatar.svg';
       }
     });
 
@@ -47,15 +50,7 @@ export class ProfileComponent implements OnInit {
   }
 
   loadProfileImage(): void {
-    if (this.currentUser?.profileImage) {
-      this.profileImage =
-        this.getBackendBaseUrl() +
-        this.currentUser.profileImage +
-        '?t=' +
-        new Date().getTime();
-    } else {
-      this.profileImage = 'assets/default-avatar.svg';
-    }
+    this.profileImage = this.auth.getProfileImageUrl(this.currentUser);
   }
 
   loadFileStatistics(): void {
@@ -116,46 +111,11 @@ export class ProfileComponent implements OnInit {
 
    this.selectedFile = file;
 
-   const img = new Image();
+   // Show preview only until upload
    const reader = new FileReader();
-
    reader.onload = (e: any) => {
-     img.src = e.target.result;
+     this.profileImage = e.target.result; // base64 preview
    };
-
-   img.onload = () => {
-     const canvas = document.createElement('canvas');
-
-     const MAX_SIZE = 300; // 🔥 FIX SIZE (profile perfect size)
-     let width = img.width;
-     let height = img.height;
-
-     // Maintain aspect ratio
-     if (width > height) {
-       if (width > MAX_SIZE) {
-         height *= MAX_SIZE / width;
-         width = MAX_SIZE;
-       }
-     } else {
-       if (height > MAX_SIZE) {
-         width *= MAX_SIZE / height;
-         height = MAX_SIZE;
-       }
-     }
-
-     canvas.width = width;
-     canvas.height = height;
-
-     const ctx = canvas.getContext('2d');
-     ctx?.drawImage(img, 0, 0, width, height);
-
-     // Convert to compressed base64
-     const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-
-     // 🔥 Set preview (smooth & controlled size)
-     this.profileImage = compressedImage;
-   };
-
    reader.readAsDataURL(file);
  }
 
@@ -169,14 +129,11 @@ export class ProfileComponent implements OnInit {
 
       this.auth.uploadProfileImage(formData).subscribe({
         next: (res: any) => {
-          // Update currentUser.profileImage with the new path from backend
-          if (res && res.profileImage) {
-            this.currentUser!.profileImage = res.profileImage;
-            this.auth.updateUser(this.currentUser!);
-          }
-          // Fetch the latest profile (including profileImage) after upload
+          // Always fetch the latest profile from backend after upload
           this.auth.fetchProfile().subscribe({
-            next: () => {
+            next: (user) => {
+              this.currentUser = user;
+              this.auth.updateUser(user); // <--- ensure all components get the update
               this.loadProfileImage();
               this.finishProfileUpdate();
             },
