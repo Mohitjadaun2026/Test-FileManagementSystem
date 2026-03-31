@@ -6,47 +6,48 @@ import { Router } from '@angular/router';
 import { FileLoadService } from '../../services/file-load.service';
 
 interface UploadItem {
-  file: File;
-  progress: number;
-  state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
-  selected?: boolean;
-  sub?: Subscription;
-  startedAt?: number;
-  finishTimer?: ReturnType<typeof setTimeout>;
+file: File;
+progress: number;
+state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
+selected?: boolean;
+sub?: Subscription;
+startedAt?: number;
+finishTimer?: ReturnType<typeof setTimeout>;
 }
 
 interface UploadItemPersisted {
-  name: string;
-  size: number;
-  type: string;
-  lastModified: number;
-  progress: number;
-  state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
-  selected?: boolean;
+name: string;
+size: number;
+type: string;
+lastModified: number;
+progress: number;
+state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
+selected?: boolean;
 }
 
 const UPLOADS_STORAGE_KEY = 'fileUploadQueue';
+const MAX_FILES_PER_BATCH = 100;
 
 @Component({
-  selector: 'app-file-upload',
-  templateUrl: './file-upload.component.html',
-  styleUrls: ['./file-upload.component.scss']
+selector: 'app-file-upload',
+templateUrl: './file-upload.component.html',
+styleUrls: ['./file-upload.component.scss']
 })
 export class FileUploadComponent {
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+@ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  readonly maxFileSizeBytes = 20 * 1024 * 1024;
-  readonly acceptedExtensions = ['.csv'];
-  readonly acceptedMimeTypes = ['text/csv'];
+readonly maxFileSizeBytes = 20 * 1024 * 1024;
+readonly acceptedExtensions = ['.csv'];
+readonly acceptedMimeTypes = ['text/csv'];
 
-  uploads: UploadItem[] = [];
-  description = '';
-  tagsText = '';
-  isOver = false;
-  private readonly minVisibleUploadMs = 2200;
-  private redirectAfterUpload = true;
+uploads: UploadItem[] = [];
+description = '';
+tagsText = '';
+isOver = false;
+private readonly minVisibleUploadMs = 2200;
+private redirectAfterUpload = true;
 
-  constructor(
+constructor(
     private api: FileLoadService,
     private snack: MatSnackBar,
     private router: Router
@@ -111,6 +112,12 @@ export class FileUploadComponent {
     const files = target.files;
     if (!files?.length) return;
 
+    if (files.length + this.uploads.length > MAX_FILES_PER_BATCH) {
+      this.snack.open(`You can upload a maximum of ${MAX_FILES_PER_BATCH} files at once. You selected ${files.length}.`, 'OK', { duration: 4000 });
+      target.value = '';
+      return;
+    }
+
     this.queueFiles(Array.from(files));
     target.value = '';
   }
@@ -120,9 +127,14 @@ export class FileUploadComponent {
     this.isOver = false;
 
     const files = ev.dataTransfer?.files;
-    if (files?.length) {
-      this.queueFiles(Array.from(files));
+    if (!files?.length) return;
+
+    if (files.length + this.uploads.length > MAX_FILES_PER_BATCH) {
+      this.snack.open(`You can upload a maximum of ${MAX_FILES_PER_BATCH} files at once. You selected ${files.length}.`, 'OK', { duration: 4000 });
+      return;
     }
+
+    this.queueFiles(Array.from(files));
   }
 
   onDragOver(ev: DragEvent) {
@@ -140,16 +152,12 @@ export class FileUploadComponent {
     const hasAllowedMime = !file.type || this.acceptedMimeTypes.includes(file.type);
 
     if (!(hasAllowedExtension && hasAllowedMime)) {
-      this.snack.open(`Only CSV files are allowed: ${file.name}`, 'Dismiss', {
-        duration: 3500
-      });
+      this.snack.open(`Only CSV files are allowed: ${file.name}`, 'Dismiss', { duration: 3500 });
       return false;
     }
 
     if (file.size > this.maxFileSizeBytes) {
-      this.snack.open(`File exceeds 20 MB limit: ${file.name}`, 'Dismiss', {
-        duration: 3500
-      });
+      this.snack.open(`File exceeds 20 MB limit: ${file.name}`, 'Dismiss', { duration: 3500 });
       return false;
     }
 
@@ -171,21 +179,17 @@ export class FileUploadComponent {
 
   startUploads() {
     if (this.isUploading) return;
-    this.startNextUpload();
+
+    // Start all queued uploads in parallel
+    for (const u of this.uploads.filter(u => u.state === 'queued')) {
+      this.uploadFile(u);
+    }
   }
 
-  private startNextUpload() {
-    if (this.isUploading) return;
-
-    const next = this.uploads.find((u) => u.state === 'queued');
-    if (!next) {
-      this.handleUploadBatchFinished();
-      return;
-    }
-
+  private uploadFile(item: UploadItem) {
     const tags = this.tagsText
       .split(',')
-      .map((t) => t.trim())
+      .map(t => t.trim())
       .filter(Boolean);
 
     const extra = {
@@ -193,75 +197,46 @@ export class FileUploadComponent {
       tags: tags.length ? tags : undefined
     };
 
-    next.state = 'uploading';
-    next.startedAt = Date.now();
-    next.progress = 3;
+    item.state = 'uploading';
+    item.progress = 3;
+    item.startedAt = Date.now();
 
-    next.sub = this.api.upload(next.file, extra).subscribe({
+    item.sub = this.api.upload(item.file, extra).subscribe({
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress) {
           if (event.total) {
-            const actual = Math.round((100 * event.loaded) / event.total);
-            next.progress = Math.min(96, Math.max(next.progress, actual));
+            item.progress = Math.min(96, Math.round((100 * event.loaded) / event.total));
           } else {
-            next.progress = Math.min(90, next.progress + 7);
+            item.progress = Math.min(90, item.progress + 7);
           }
         } else if (event.type === HttpEventType.Response) {
-          const elapsed = Date.now() - (next.startedAt || Date.now());
-          const wait = Math.max(0, this.minVisibleUploadMs - elapsed);
-          next.progress = Math.max(next.progress, 98);
+          item.progress = 100;
+          item.state = 'done';
+          this.updateAndPersistUploads();
 
-          next.finishTimer = setTimeout(() => {
-            if (next.state === 'canceled') return;
+          // Check if all done
+          if (this.uploads.every(u => u.state === 'done')) {
+            this.snack.open(`All ${this.uploads.length} files uploaded successfully`, 'OK', { duration: 3000 });
 
-            next.progress = 100;
-            next.state = 'done';
-            next.finishTimer = undefined;
-
-            this.snack.open(`Upload successful: ${next.file.name}`, 'OK', {
-              duration: 2000
-            });
-
-            this.startNextUpload();
-          }, wait);
+            // Auto-clear queue
+            setTimeout(() => {
+              this.clearDone();
+            }, 1000);
+          }
         }
       },
       error: () => {
-        if (next.state === 'canceled') return;
-
-        next.state = 'error';
-        next.sub = undefined;
+        item.state = 'error';
         this.updateAndPersistUploads();
-
-        this.snack.open(`Upload failed: ${next.file.name}`, 'Dismiss', {
-          duration: 3500
-        });
-
-        this.startNextUpload();
       },
       complete: () => {
-        next.sub = undefined;
-        this.updateAndPersistUploads();
+        item.sub = undefined;
       }
     });
   }
 
-  private handleUploadBatchFinished() {
-    const doneCount = this.uploads.filter((u) => u.state === 'done').length;
-
-    if (!this.redirectAfterUpload || doneCount === 0) return;
-
-    this.router.navigate(['/files'], {
-      queryParams: {
-        refresh: Date.now()
-      }
-    });
-  }
-
-  cancelUpload(item: UploadItem, options?: { silent?: boolean; continueQueue?: boolean }) {
+  cancelUpload(item: UploadItem) {
     if (item.state !== 'uploading' && item.state !== 'queued') return;
-
-    const wasUploading = item.state === 'uploading';
 
     if (item.finishTimer) {
       clearTimeout(item.finishTimer);
@@ -274,71 +249,21 @@ export class FileUploadComponent {
     item.progress = 0;
     item.selected = false;
     this.updateAndPersistUploads();
-
-    if (!options?.silent) {
-      this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', {
-        duration: 1500
-      });
-    }
-
-    if (options?.continueQueue !== false && wasUploading) {
-      this.startNextUpload();
-    }
   }
 
   cancelSelected() {
-    const selected = this.uploads.filter(
-      (u) => u.selected && (u.state === 'queued' || u.state === 'uploading')
-    );
-
-    if (!selected.length) return;
-
-    const hadActive = selected.some((u) => u.state === 'uploading');
-
-    for (const item of selected) {
-      this.cancelUpload(item, { silent: true, continueQueue: false });
-    }
-
-    this.snack.open(`Canceled ${selected.length} file(s)`, 'OK', {
-      duration: 1800
-    });
-
-    if (hadActive) {
-      this.startNextUpload();
-    }
+    const selected = this.uploads.filter(u => u.selected && (u.state === 'queued' || u.state === 'uploading'));
+    selected.forEach(item => this.cancelUpload(item));
   }
 
   clearDone() {
-    const before = this.uploads.length;
-
-    // "Finished" rows include successful, failed, and canceled uploads.
-    this.uploads = this.uploads.filter(
-      (u) => u.state !== 'done' && u.state !== 'error' && u.state !== 'canceled'
-    );
+    this.uploads = this.uploads.filter(u => u.state !== 'done' && u.state !== 'error' && u.state !== 'canceled');
     this.updateAndPersistUploads();
-
-    const removed = before - this.uploads.length;
-    if (removed > 0) {
-      this.snack.open(`Cleared ${removed} finished file(s)`, 'OK', {
-        duration: 1600
-      });
-    } else {
-      this.snack.open('No finished files to clear', 'OK', {
-        duration: 1600
-      });
-    }
   }
 
   removeSelected() {
-    const before = this.uploads.length;
     this.uploads = this.uploads.filter(u => !u.selected);
     this.updateAndPersistUploads();
-    const removed = before - this.uploads.length;
-    if (removed > 0) {
-      this.snack.open(`Removed ${removed} file(s) from queue`, 'OK', { duration: 1600 });
-    } else {
-      this.snack.open('No files selected to remove', 'OK', { duration: 1600 });
-    }
   }
 
   triggerFilePick() {
@@ -367,16 +292,12 @@ export class FileUploadComponent {
     if (!raw) return;
     try {
       const arr: UploadItemPersisted[] = JSON.parse(raw);
-      this.uploads = arr.map(item => {
-        // Try to find a matching File in the current session (not possible after reload)
-        // So, create a placeholder object with only metadata
-        return {
-          file: { name: item.name, size: item.size, type: item.type, lastModified: item.lastModified } as File,
-          progress: item.progress,
-          state: item.state,
-          selected: item.selected,
-        };
-      });
+      this.uploads = arr.map(item => ({
+        file: { name: item.name, size: item.size, type: item.type, lastModified: item.lastModified } as File,
+        progress: item.progress,
+        state: item.state,
+        selected: item.selected
+      }));
     } catch {}
   }
 
@@ -384,4 +305,3 @@ export class FileUploadComponent {
     this.persistUploadsToStorage();
   }
 }
-
