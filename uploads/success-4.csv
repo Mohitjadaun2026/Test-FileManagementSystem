@@ -1,5 +1,0 @@
-tradeId,clientId,stockSymbol,quantity,price,tradeType
-TRD4001,CLT301,ORCL,9,112.05,SELL
-TRD4002,CLT302,IBM,4,191.80,BUY
-TRD4003,CLT303,ADBE,7,531.65,SELL
-
