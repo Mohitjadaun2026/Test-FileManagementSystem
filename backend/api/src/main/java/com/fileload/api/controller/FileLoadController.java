@@ -214,12 +214,6 @@ public class FileLoadController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/archive")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Archive file load")
-    public ResponseEntity<FileLoadResponseDTO> archiveFileLoad(@PathVariable Long id) {
-        return ResponseEntity.ok(fileLoadService.archiveFileLoad(id));
-    }
 
     @PostMapping("/{id}/retry")
     @PreAuthorize("hasRole('ADMIN')")

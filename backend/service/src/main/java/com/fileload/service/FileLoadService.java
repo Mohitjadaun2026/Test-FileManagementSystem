@@ -27,7 +27,7 @@ public interface FileLoadService {
 
     void deleteFileLoad(Long id);
 
-    FileLoadResponseDTO archiveFileLoad(Long id);
+//    FileLoadResponseDTO archiveFileLoad(Long id);
 
     FileLoadResponseDTO retryFileLoad(Long id);
 

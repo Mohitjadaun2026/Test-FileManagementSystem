@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { FileLoadService } from '../../services/file-load.service';
@@ -53,6 +53,29 @@ constructor(
     return Math.round(total / this.uploads.length);
   }
 
+  // Selection helpers
+  get allSelected(): boolean {
+    return this.uploads.length > 0 && this.uploads.every(u => u.selected);
+  }
+
+  get someSelected(): boolean {
+    return this.uploads.some(u => u.selected) && !this.allSelected;
+  }
+
+  get anySelected(): boolean {
+    return this.uploads.some(u => u.selected);
+  }
+
+  get selectedCount(): number {
+    return this.uploads.filter(u => u.selected).length;
+  }
+
+  toggleSelectAll(checked: boolean) {
+    this.uploads.forEach(u => u.selected = checked);
+    this.updateAndPersistUploads();
+  }
+
+  // File input / drag & drop
   onFileSelected(ev: Event) {
     const target = ev.target as HTMLInputElement;
     const files = target.files;
@@ -70,6 +93,10 @@ constructor(
 
   onDragOver(ev: DragEvent) { ev.preventDefault(); this.isOver = true; }
   onDragLeave() { this.isOver = false; }
+
+  triggerFilePick() {
+    this.fileInput.nativeElement.click();
+  }
 
   private isValidFile(file: File): boolean {
     const lower = file.name.toLowerCase();
@@ -120,20 +147,44 @@ constructor(
       });
     });
 
-    // Upload all in parallel
     Promise.all(uploadObservables).then(() => {
       this.updateAndPersistUploads();
       this.snack.open(`All files uploaded successfully!`, 'OK', { duration: 3000 });
-      this.uploads = []; // auto-clear queue
+      this.uploads = [];
       localStorage.removeItem(UPLOADS_STORAGE_KEY);
       this.router.navigate(['/files'], { queryParams: { refresh: Date.now() } });
     });
   }
 
-  triggerFilePick() {
-    this.fileInput.nativeElement.click();
+  // Remove / cancel files
+  cancelUpload(item: UploadItem) {
+    item.sub?.unsubscribe();
+    if (item.state === 'queued' || item.state === 'uploading') {
+      this.uploads = this.uploads.filter(u => u !== item);
+      this.updateAndPersistUploads();
+    }
   }
 
+  removeSelected() {
+    this.uploads.forEach(u => u.selected && u.sub?.unsubscribe());
+    this.uploads = this.uploads.filter(u => !u.selected);
+    this.updateAndPersistUploads();
+    this.snack.open('Selected files removed', 'Dismiss', { duration: 3000 });
+  }
+
+  clearDone() {
+    this.uploads = this.uploads.filter(u => u.state !== 'done');
+    this.updateAndPersistUploads();
+  }
+
+  deleteAll() {
+    this.uploads.forEach(u => u.sub?.unsubscribe());
+    this.uploads = [];
+    localStorage.removeItem(UPLOADS_STORAGE_KEY);
+    this.snack.open('All files removed', 'Dismiss', { duration: 3000 });
+  }
+
+  // Storage persistence
   private persistUploadsToStorage() {
     const persisted = this.uploads.map(u => ({
       name: u.file?.name,
@@ -169,4 +220,3 @@ constructor(
     this.restoreUploadsFromStorage();
   }
 }
-

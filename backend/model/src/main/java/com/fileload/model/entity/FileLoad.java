@@ -131,13 +131,13 @@ public class FileLoad {
         this.tags = tags;
     }
 
-    public Boolean getArchived() {
-        return archived;
-    }
+//    public Boolean getArchived() {
+//        return archived;
+//    }
 
-    public void setArchived(Boolean archived) {
-        this.archived = archived;
-    }
+//    public void setArchived(Boolean archived) {
+//        this.archived = archived;
+//    }
 
     public String getStoragePath() {
         return storagePath;
