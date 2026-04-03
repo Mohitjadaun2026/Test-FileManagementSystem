@@ -29,7 +29,7 @@ public interface FileLoadService {
 
 //    FileLoadResponseDTO archiveFileLoad(Long id);
 
-    FileLoadResponseDTO retryFileLoad(Long id);
+//    FileLoadResponseDTO retryFileLoad(Long id);
 
     byte[] downloadFile(Long id);
 

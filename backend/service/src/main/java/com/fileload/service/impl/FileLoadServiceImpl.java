@@ -238,15 +238,15 @@ public class FileLoadServiceImpl implements FileLoadService {
 //        return fileLoadMapper.toDto(fileLoadRepository.save(entity));
 //    }
 
-    @Override
-    public FileLoadResponseDTO retryFileLoad(Long id) {
-        FileLoad entity = fetchById(id);
-        entity.setStatus(FileStatus.PENDING);
-        entity.setErrors(null);
-        entity = fileLoadRepository.save(entity);
-        launchBatch(entity.getId());
-        return fileLoadMapper.toDto(entity);
-    }
+//    @Override
+//    public FileLoadResponseDTO retryFileLoad(Long id) {
+//        FileLoad entity = fetchById(id);
+//        entity.setStatus(FileStatus.PENDING);
+//        entity.setErrors(null);
+//        entity = fileLoadRepository.save(entity);
+//        launchBatch(entity.getId());
+//        return fileLoadMapper.toDto(entity);
+//    }
 
     @Override
     @Transactional(readOnly = true)

@@ -215,12 +215,12 @@ public class FileLoadController {
     }
 
 
-    @PostMapping("/{id}/retry")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Retry failed file load")
-    public ResponseEntity<FileLoadResponseDTO> retryFileLoad(@PathVariable Long id) {
-        return ResponseEntity.ok(fileLoadService.retryFileLoad(id));
-    }
+//    @PostMapping("/{id}/retry")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(summary = "Retry failed file load")
+//    public ResponseEntity<FileLoadResponseDTO> retryFileLoad(@PathVariable Long id) {
+//        return ResponseEntity.ok(fileLoadService.retryFileLoad(id));
+//    }
 
     @GetMapping("/{id}/download")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
