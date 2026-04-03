@@ -93,7 +93,7 @@ public class FileLoadServiceImpl implements FileLoadService {
             entity.setLoadDate(LocalDateTime.now());
             entity.setStatus(FileStatus.PENDING);
             entity.setRecordCount(0L);
-            entity.setArchived(false);
+//            entity.setArchived(false);
             entity.setStoragePath(savedFile.toAbsolutePath().toString());
             entity.setDescription(normalizedDescription);
             entity.setTags(normalizedTags);
@@ -118,7 +118,7 @@ public class FileLoadServiceImpl implements FileLoadService {
         failed.setStatus(FileStatus.FAILED);
         failed.setRecordCount(0L);
         failed.setErrors(errorMessage);
-        failed.setArchived(false);
+//        failed.setArchived(false);
         failed.setStoragePath("");
         failed.setDescription(description);
         failed.setTags(tagsCsv);
@@ -229,24 +229,24 @@ public class FileLoadServiceImpl implements FileLoadService {
         fileLoadRepository.delete(entity);
     }
 
-    @Override
-    @Transactional
-    public FileLoadResponseDTO archiveFileLoad(Long id) {
-        FileLoad entity = fetchById(id);
-        entity.setArchived(true);
-        entity.setStatus(FileStatus.ARCHIVED);
-        return fileLoadMapper.toDto(fileLoadRepository.save(entity));
-    }
+//    @Override
+//    @Transactional
+//    public FileLoadResponseDTO archiveFileLoad(Long id) {
+//        FileLoad entity = fetchById(id);
+//        entity.setArchived(true);
+//        entity.setStatus(FileStatus.ARCHIVED);
+//        return fileLoadMapper.toDto(fileLoadRepository.save(entity));
+//    }
 
-    @Override
-    public FileLoadResponseDTO retryFileLoad(Long id) {
-        FileLoad entity = fetchById(id);
-        entity.setStatus(FileStatus.PENDING);
-        entity.setErrors(null);
-        entity = fileLoadRepository.save(entity);
-        launchBatch(entity.getId());
-        return fileLoadMapper.toDto(entity);
-    }
+//    @Override
+//    public FileLoadResponseDTO retryFileLoad(Long id) {
+//        FileLoad entity = fetchById(id);
+//        entity.setStatus(FileStatus.PENDING);
+//        entity.setErrors(null);
+//        entity = fileLoadRepository.save(entity);
+//        launchBatch(entity.getId());
+//        return fileLoadMapper.toDto(entity);
+//    }
 
     @Override
     @Transactional(readOnly = true)

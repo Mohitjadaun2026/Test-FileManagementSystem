@@ -1,5 +1,0 @@
-tradeId,clientId,stockSymbol,quantity,price,tradeType
-TRD2001,CLT101,NVDA,8,915.10,BUY
-TRD2002,CLT102,AMZN,3,174.40,SELL
-TRD2003,CLT103,GOOG,6,141.30,BUY
-

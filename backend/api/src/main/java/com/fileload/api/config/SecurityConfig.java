@@ -57,7 +57,7 @@ public class SecurityConfig {
                                 "/api/file-loads/overview",
                                 "/oauth2/**",
                                 "/login/oauth2/**",
-                                "/uploads/**",   // 🔥 ADD THIS LINE
+                                "/uploads/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"

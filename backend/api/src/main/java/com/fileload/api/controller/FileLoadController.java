@@ -32,11 +32,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.GrantedAuthority;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/file-loads")
 @Tag(name = "File Loads")
 public class FileLoadController {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileLoadController.class);
 
     private final FileLoadService fileLoadService;
 
@@ -175,7 +182,20 @@ public class FileLoadController {
     @Operation(summary = "Update file status")
     public ResponseEntity<FileLoadResponseDTO> updateStatus(@PathVariable Long id,
                                                             @Valid @RequestBody UpdateStatusRequestDTO request) {
+        // Debug: log current user's authorities
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        logger.info("[DEBUG] updateStatus called by user: {} with authorities: {}", auth.getName(), auth.getAuthorities());
         return ResponseEntity.ok(fileLoadService.updateFileLoadStatus(id, request.getStatus(), request.getComment()));
+    }
+    // Debug endpoint to check current user's authorities from Swagger UI
+    @GetMapping("/whoami")
+    @Operation(summary = "Show current user's username and authorities (for Swagger UI debug)")
+    public ResponseEntity<?> whoami() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(new java.util.HashMap<String, Object>() {{
+            put("username", auth.getName());
+            put("authorities", auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toArray());
+        }});
     }
 
     @PatchMapping("/{id}")
@@ -194,19 +214,13 @@ public class FileLoadController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/archive")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Archive file load")
-    public ResponseEntity<FileLoadResponseDTO> archiveFileLoad(@PathVariable Long id) {
-        return ResponseEntity.ok(fileLoadService.archiveFileLoad(id));
-    }
 
-    @PostMapping("/{id}/retry")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Retry failed file load")
-    public ResponseEntity<FileLoadResponseDTO> retryFileLoad(@PathVariable Long id) {
-        return ResponseEntity.ok(fileLoadService.retryFileLoad(id));
-    }
+//    @PostMapping("/{id}/retry")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @Operation(summary = "Retry failed file load")
+//    public ResponseEntity<FileLoadResponseDTO> retryFileLoad(@PathVariable Long id) {
+//        return ResponseEntity.ok(fileLoadService.retryFileLoad(id));
+//    }
 
     @GetMapping("/{id}/download")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
