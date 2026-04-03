@@ -33,6 +33,25 @@ export class ProfileDialogComponent implements OnInit {
     });
   }
 
+  getProfileImageFallback(): string {
+    return this.auth.getProfileImageFallback(this.currentUser);
+  }
+
+  handleProfileImageError(): void {
+    this.profileImage = this.getProfileImageFallback();
+  }
+
+  getRoleLabel(role?: string | null): string {
+    if (!role) {
+      return 'User';
+    }
+
+    return role
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+  }
+
   // ✅ FIXED
   goToProfile() {
     this.dialogRef.close();        // 🔥 close dialog first

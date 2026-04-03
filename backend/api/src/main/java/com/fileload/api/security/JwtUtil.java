@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
@@ -22,8 +23,16 @@ public class JwtUtil {
     }
 
     public String generateToken(String username) {
+        return generateToken(username, 0, "USER");
+    }
+
+    public String generateToken(String username, int tokenVersion, String role) {
         return Jwts.builder()
                 .subject(username)
+                .claims(Map.of(
+                        "tokenVersion", tokenVersion,
+                        "role", role
+                ))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey())
@@ -49,6 +58,20 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public int extractTokenVersion(String token) {
+        Object claimValue = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("tokenVersion");
+
+        if (claimValue instanceof Number number) {
+            return number.intValue();
+        }
+        return 0;
     }
 }
 

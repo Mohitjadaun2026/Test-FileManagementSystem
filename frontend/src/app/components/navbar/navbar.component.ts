@@ -13,6 +13,8 @@ import { ProfileDialogComponent } from '../profile-dialog/profile-dialog.compone
 export class NavbarComponent implements OnInit {
 
   isLoggedIn: boolean = false;
+  isSuperAdmin: boolean = false;
+  canManageUsers: boolean = false;
   currentUser: User | null = null;
   profileImage: string = 'assets/default-avatar.svg';
 
@@ -26,8 +28,18 @@ export class NavbarComponent implements OnInit {
     this.auth.currentUser$.subscribe((user: User | null) => {
       this.isLoggedIn = !!user;
       this.currentUser = user;
+      this.isSuperAdmin = (user?.role || '').toUpperCase() === 'SUPER_ADMIN';
+      this.canManageUsers = this.auth.hasAnyAdminPermission('USER_ACCESS_CONTROL', 'USER_RECORDS_OVERVIEW', 'USER_FILES_DELETE_ALL');
       this.profileImage = this.auth.getProfileImageUrl(user);
     });
+  }
+
+  getProfileImageFallback(): string {
+    return this.auth.getProfileImageFallback(this.currentUser);
+  }
+
+  handleProfileImageError(): void {
+    this.profileImage = this.getProfileImageFallback();
   }
 
   openProfileDialog(): void {

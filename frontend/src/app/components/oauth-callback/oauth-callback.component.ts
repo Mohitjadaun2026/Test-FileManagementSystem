@@ -22,6 +22,7 @@ export class OauthCallbackComponent implements OnInit {
     const username = this.route.snapshot.queryParamMap.get('username') || email;
     const id = Number(this.route.snapshot.queryParamMap.get('id') || 0);
     const role = this.route.snapshot.queryParamMap.get('role') || 'USER';
+    const adminPermissions = this.route.snapshot.queryParamMap.get('adminPermissions') || '';
 
     if (!token || !email) {
       this.snack.open('Google login failed. Please try again.', 'Dismiss', { duration: 3500 });
@@ -35,6 +36,7 @@ export class OauthCallbackComponent implements OnInit {
       email,
       username,
       role,
+        adminPermissions,
       token
     });
 

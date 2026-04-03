@@ -2,6 +2,7 @@ package com.fileload.api.security;
 
 import com.fileload.dao.repository.UserAccountRepository;
 import com.fileload.model.entity.UserAccount;
+import java.time.LocalDateTime;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +34,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.withUsername(account.getEmail())
                 .password(account.getPassword())
-                .authorities(new SimpleGrantedAuthority("ROLE_" + account.getRole()))
+                .authorities(new SimpleGrantedAuthority("ROLE_" + account.getRole().name()))
+                .disabled(!account.isEnabled())
+                .accountLocked(account.getAccountLockedUntil() != null && account.getAccountLockedUntil().isAfter(LocalDateTime.now()))
                 .build();
     }
 }

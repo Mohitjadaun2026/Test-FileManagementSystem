@@ -1,5 +1,6 @@
 package com.fileload.api.config;
 
+import com.fileload.api.security.IpBlockFilter;
 import com.fileload.api.security.JwtAuthenticationFilter;
 import com.fileload.api.security.OAuth2SuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -38,6 +39,9 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
+    private IpBlockFilter ipBlockFilter;
+
+    @Autowired
     private OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Autowired
@@ -46,15 +50,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(this::configureCors)
                 .csrf(csrf -> csrf.disable())
                 // OAuth2 login needs session for authorization request state.
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/super-admin/admin-invites/accept").permitAll()
+                        .requestMatchers("/api/super-admin/admin-invites/*/validate").permitAll()
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/oauth/**",
-                                "/api/file-loads/overview",
                                 "/oauth2/**",
                                 "/login/oauth2/**",
                                 "/uploads/**",
@@ -75,6 +80,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler)
                 )
+                .addFilterBefore(ipBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -114,6 +120,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    private void configureCors(CorsConfigurer<HttpSecurity> cors) {
+        cors.configurationSource(corsConfigurationSource());
     }
 }
 
