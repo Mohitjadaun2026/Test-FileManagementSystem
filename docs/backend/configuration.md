@@ -1,21 +1,20 @@
 # Backend Configuration
 
-## Primary Config
+Primary file: `backend/api/src/main/resources/application.yml`
 
-File: `backend/api/src/main/resources/application.yml`
+## Core settings
 
-Highlights:
+- datasource: MySQL (`spring.datasource.*`)
+- JPA: `ddl-auto: update`
+- multipart limits: 20MB
+- batch schema initialization: enabled
+- OAuth2 Google client registration
+- JWT secret and expiration
+- SSL toggles and keystore values
+- frontend base URL (`app.frontend-base-url`)
+- super-admin bootstrap settings (`app.super-admin.*`)
 
-- `spring.config.import: optional:file:.env[.properties]`
-- datasource URL/user/password
-- JPA auto-update schema
-- multipart max size (`50MB`)
-- OAuth2 registration/provider blocks for Google
-- server SSL toggles
-- springdoc paths
-- JWT secret/expiration
-
-## Environment Variables
+## Environment variables
 
 Common runtime variables:
 
@@ -23,40 +22,39 @@ Common runtime variables:
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 - `JWT_SECRET`, `JWT_EXPIRATION`
 - `SERVER_PORT`, `SERVER_SSL_ENABLED`
+- `FRONTEND_BASE_URL`
+- `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_USERNAME`, `SUPER_ADMIN_PASSWORD`
 
-## Security Config
+## Security chain highlights
 
-`SecurityConfig`:
+From `SecurityConfig`:
 
-- CORS enabled
-- CSRF disabled (JWT API model)
-- session policy `IF_REQUIRED` (needed for OAuth2 auth request state)
-- public paths include:
-  - `/api/auth/**`
-  - `/oauth2/**`
-  - `/login/oauth2/**`
-  - `/uploads/**`
-  - OpenAPI/Swagger routes
-- all others require authentication
-- custom JWT filter inserted before username/password filter
+- CORS enabled with localhost patterns (http + https)
+- CSRF disabled for API token model
+- JWT filter before username/password filter
+- blocked-IP filter enabled
+- method security enabled (`@EnableMethodSecurity`)
 
-## Web MVC Config
+Public paths include:
 
-`WebConfig`:
+- `/api/auth/**`
+- `/oauth2/**`
+- `/login/oauth2/**`
+- `/uploads/**`
+- `/api/super-admin/admin-invites/*/validate`
+- `/api/super-admin/admin-invites/accept`
+- swagger/openapi routes
 
-- CORS mapping for `/api/**`
-- static resource handler for uploaded files:
-  - `/uploads/**` -> `file:uploads/`
+## Bootstrap behavior
 
-## OpenAPI
+`SuperAdminBootstrap` ensures configured super-admin exists with all permissions:
 
-`OpenApiConfig` defines bearer auth security scheme and API metadata. Swagger UI available at `/swagger-ui.html`.
+- `USER_ACCESS_CONTROL`
+- `USER_RECORDS_OVERVIEW`
+- `USER_FILES_DELETE_ALL`
 
-## Async
+## Notes
 
-`AsyncConfig` enables `@Async` execution used by batch launcher.
-
-## Operational Caveat
-
-Current `application.yml` in this workspace still includes a default DB password fallback (`${DB_PASSWORD:Mohit@123}`). For shared or production environments, remove hardcoded fallbacks and use secret-managed environment values only.
-
+- Keep secrets in `.env`, not committed files.
+- Align frontend `environment.ts` `apiBaseUrl` with backend protocol/port.
+- In production, tighten CORS origin list to explicit domains.

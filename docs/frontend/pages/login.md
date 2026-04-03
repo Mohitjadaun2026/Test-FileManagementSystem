@@ -19,6 +19,7 @@ Authenticate users via:
 - primary button for local sign-in
 - divider + Google button with SVG icon
 - link to `/register`
+- link to `/forgot-password`
 
 ## Logic
 
@@ -54,4 +55,4 @@ Authenticate users via:
 
 - Backend supports login alias by email through `LoginRequestDTO`.
 - OAuth flow must have proper Google redirect URI configured on backend + Google Console.
-
+- Password reset entry point is available through the forgot-password route.

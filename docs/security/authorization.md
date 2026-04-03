@@ -13,6 +13,8 @@ In `SecurityConfig`:
 - `/oauth2/**`
 - `/login/oauth2/**`
 - `/uploads/**`
+- `/api/super-admin/admin-invites/*/validate`
+- `/api/super-admin/admin-invites/accept`
 - `/v3/api-docs/**`
 - `/swagger-ui/**`
 - `/swagger-ui.html`
@@ -24,12 +26,31 @@ In `SecurityConfig`:
 
 ### File APIs
 
-- create/get/list/my-list/overview/updateMetadata/download: `USER` or `ADMIN`
-- updateStatus/delete/archive/retry: `ADMIN` only
+- create/get/list/my-list/overview/updateMetadata/download: `USER`, `ADMIN`, or `SUPER_ADMIN` depending on endpoint
+- updateStatus/delete/reprocess: admin-level only
 
-### Auth APIs
+### Admin APIs
 
-- register/login/oauth start/upload-profile are under public auth route; endpoint-level role checks are not applied there.
+- `GET /api/admin/users`: any of `USER_ACCESS_CONTROL`, `USER_RECORDS_OVERVIEW`, `USER_FILES_DELETE_ALL`
+- `PATCH /api/admin/users/{userId}/enabled`: `USER_ACCESS_CONTROL`
+- `GET /api/admin/users/{userId}/file-count`: `USER_RECORDS_OVERVIEW`
+- `DELETE /api/admin/users/{userId}/files`: `USER_FILES_DELETE_ALL`
+- analytics and many security actions are `SUPER_ADMIN` or permission-scoped
+
+### Super Admin APIs
+
+- invite creation and permission updates: `SUPER_ADMIN`
+- invite validation/accept: public endpoints guarded by token validation logic
+
+## Permission Mapping
+
+`AdminPermission` currently contains:
+
+- `USER_ACCESS_CONTROL`
+- `USER_RECORDS_OVERVIEW`
+- `USER_FILES_DELETE_ALL`
+
+`AdminAuthorizationService` checks these scopes against the stored permission string.
 
 ## Role Mapping
 
@@ -39,13 +60,14 @@ Typical expected values:
 
 - `USER`
 - `ADMIN`
+- `SUPER_ADMIN`
 
 ## Frontend Route Authorization
 
-`AuthGuard` is coarse-grained:
+Client-side guards are coarse-grained and should not be treated as final authority:
 
-- checks token existence only (not role)
-- redirects unauthenticated users to login
+- `AuthGuard` checks token existence only
+- `AdminScopeGuard` checks admin scopes and super-admin role
+- `SuperAdminGuard` checks `SUPER_ADMIN` role
 
-Role-specific UI restrictions are not deeply enforced in routing and should rely on backend as source of truth.
-
+Backend enforcement remains the source of truth.

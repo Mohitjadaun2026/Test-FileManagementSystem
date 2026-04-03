@@ -41,5 +41,5 @@ Backend (`RegisterRequestDTO`) additionally enforces:
 
 ## Notes
 
-Because backend has stricter `.com` rule than frontend, some valid frontend emails may still be rejected server-side. This is expected with current implementation.
-
+- Because backend has stricter `.com` rule than frontend, some valid frontend emails may still be rejected server-side. This is expected with current implementation.
+- After registration, users continue to the login page and can also access password reset if needed.

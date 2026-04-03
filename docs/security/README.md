@@ -6,8 +6,10 @@ This section describes authentication, authorization, token handling, OAuth2 int
 
 - `authentication.md`
 - `authorization.md`
+- `roles-permissions-matrix.md`
 - `jwt-and-oauth.md`
 - `hardening-checklist.md`
+- `detailed-security.md`
 
 ## Security Components in Code
 
@@ -17,5 +19,6 @@ This section describes authentication, authorization, token handling, OAuth2 int
 - `CustomUserDetailsService`
 - `OAuth2SuccessHandler`
 - `GlobalExceptionHandler`
-- frontend `AuthInterceptor` and `AuthGuard`
-
+- `AdminAuthorizationService`
+- `IpBlockFilter`
+- frontend `AuthInterceptor`, `AuthGuard`, `AdminScopeGuard`, `SuperAdminGuard`

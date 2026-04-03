@@ -1,64 +1,69 @@
 # Backend Architecture
 
-## Module Layout
+## Module structure
 
-## `backend/model`
+### `backend/model`
 
-Defines shared domain contracts:
+Shared contracts used by all backend modules:
 
-- Entities: `FileLoad`, `UserAccount`, `FileStatus`
-- DTOs: auth payloads, file response/search/update payloads, dashboard overview
+- entities: `UserAccount`, `FileLoad`, `AdminAccessInvite`, `AdminAuditEvent`
+- enums: `UserRole`, `FileStatus`, `AdminPermission`
+- DTOs: auth, file, password reset, admin/super-admin requests and responses
 
-Purpose: Keep model classes independent and reusable across modules.
+### `backend/dao`
 
-## `backend/dao`
+Persistence layer:
 
-Data access layer:
+- repositories for users, file loads, invites, audit events
+- dynamic search via `FileLoadSpecifications`
 
-- `FileLoadRepository`, `UserAccountRepository`
-- `FileLoadSpecifications` for dynamic search filtering
+### `backend/service`
 
-Purpose: Encapsulate persistence and query composition.
+Business workflows:
 
-## `backend/service`
+- `FileLoadServiceImpl` for upload/search/metadata/delete/download
+- `AdminServiceImpl` for user admin operations, audit, analytics
+- `SuperAdminServiceImpl` for invites and permission management
+- batch pipeline: launcher + tasklet + CSV validation utility
 
-Business orchestration layer:
+### `backend/api`
 
-- `FileLoadService` interface + `FileLoadServiceImpl`
-- Mapper: `FileLoadMapper`
-- CSV analysis utility: `RecordCountUtil`
-- Async batch execution: `BatchConfig`, `BatchJobLauncherService`, `FileProcessingTasklet`
+Delivery and security boundary:
 
-Purpose: Implement domain workflow independent of HTTP layer.
+- controllers: `AuthController`, `FileLoadController`, `AdminController`, `SuperAdminController`
+- security: JWT filter/util, OAuth success handler, user details service
+- additional controls: `IpBlockFilter`, `SecurityControlService`, `AdminAuthorizationService`
+- configuration: security chain, CORS/resource handlers, OpenAPI, bootstrap seeding, async
+- global exception mapping
 
-## `backend/api`
+## Dependency direction
 
-Delivery layer:
+`api -> service -> dao -> model`
 
-- Controllers: `AuthController`, `FileLoadController`
-- Security: JWT filter/util, OAuth success handler, user details service
-- Configuration: Security, CORS/resource handlers, OpenAPI, async enablement
-- Global exception handling
+## Processing architecture
 
-Purpose: HTTP contracts, authn/authz boundaries, and API-level behavior.
+- File upload stores physical file under `uploads/`.
+- DB metadata is persisted with status `PENDING`.
+- Async batch updates through `PROCESSING` to `SUCCESS`/`FAILED`.
+- UI polls list endpoints for state transitions.
 
-## Dependency Direction
+## Authorization architecture
 
-`api` -> `service` -> `dao` -> `model`
+- coarse endpoint auth in `SecurityConfig`
+- fine-grained method auth via `@PreAuthorize`
+- scope checks through `AdminAuthorizationService`
 
-No cyclic dependency should exist between these modules.
+## Admin model summary
 
-## Transaction and Threading Notes
+- `SUPER_ADMIN`: unrestricted admin controls
+- `ADMIN`: allowed subset controlled by `AdminPermission`
+  - `USER_ACCESS_CONTROL`
+  - `USER_RECORDS_OVERVIEW`
+  - `USER_FILES_DELETE_ALL`
 
-- Upload endpoint persists and flushes file metadata before async launch.
-- Async launch uses `@Async` (`AsyncConfig`) and custom transaction templates.
-- Tasklet updates status in `REQUIRES_NEW` transactions for deterministic state transitions.
+## Core design decisions
 
-## Key Architectural Decisions
-
-1. **Store file physically + metadata in DB** for traceability and retrieval.
-2. **Status-driven lifecycle** using enum and polling-friendly transitions.
-3. **Specification-based filtering** for composable search criteria.
-4. **Global exception response model** (`ApiErrorResponse`) for API consistency.
-5. **Dual auth entry** (local credentials + OAuth2) converging to internal JWT session model.
-
+1. Keep backend authorization as final source of truth.
+2. Support both OAuth and credential login while converging to JWT.
+3. Isolate admin workflows from user workflows with dedicated controllers/services.
+4. Keep file metadata queryable and physical files downloadable with ownership checks.

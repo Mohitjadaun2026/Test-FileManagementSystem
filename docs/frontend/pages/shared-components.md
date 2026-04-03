@@ -7,12 +7,14 @@ Responsibilities:
 - render top navigation and auth-sensitive actions
 - show profile avatar
 - open profile dialog
+- surface admin and super-admin links when allowed
 
 Behavior:
 
 - subscribes to `currentUser$`
-- also reads local storage key `fl_user` for latest profile image refresh
-- builds profile image URL against backend host (`http://localhost:8080`)
+- uses shared profile-image helper with role-aware fallback avatars
+- shows `/admin/users` for admins with user-management access
+- shows `/super-admin/admin-invites` for `SUPER_ADMIN`
 
 ## `ProfileDialogComponent`
 
@@ -20,6 +22,7 @@ Small quick-access modal:
 
 - shows avatar/user summary
 - action buttons: view profile, logout
+- displays the current role badge
 - closes dialog before route transitions
 
 ## `FileSearchComponent`
@@ -57,4 +60,5 @@ Static informational/footer links and product branding.
 - file details embeds status update inline and can open dialog
 - navbar opens profile dialog
 - profile dialog routes to profile page
-
+- admin users page uses the admin service to manage users and file counts
+- admin invite page is only reachable by super-admin

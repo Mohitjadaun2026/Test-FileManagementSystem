@@ -34,6 +34,11 @@ Central workspace for listing, filtering, selecting, and acting on file loads.
 - record count range
 - page/size/sort
 
+## Display Notes
+
+- the first table column shows a serial row number (`No.`) instead of database primary key
+- this keeps numbering user-friendly even when DB `id` values continue after deletes
+
 ## Bulk Actions Logic
 
 - maintains selected IDs in `Set<number>`
@@ -53,4 +58,3 @@ Central workspace for listing, filtering, selecting, and acting on file loads.
 ## Important Behavior
 
 This page checks auth on init and redirects to login if not authenticated.
-

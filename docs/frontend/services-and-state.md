@@ -4,16 +4,18 @@
 
 Responsibilities:
 
-- Local auth API integration (`/auth/login`, `/auth/register`)
+- Local auth API integration (`/auth/login`, `/auth/register`, `/auth/profile`)
+- OAuth callback session hydration
 - profile image upload API integration (`/auth/upload-profile`)
 - local storage persistence under key `fl_user`
 - exposed reactive stream `currentUser$`
 - helper methods: `isAuthenticated()`, `getToken()`, `logout()`, `updateUser()`
+- role-aware avatar fallback URL generation for profile surfaces
 
 State model:
 
 - User object from backend (`AuthResponseDTO` equivalent)
-- includes `token`, `role`, `profileImage` path
+- includes `token`, `role`, `profileImage`, `adminPermissions`
 
 ## `FileLoadService`
 
@@ -29,6 +31,18 @@ Notable design:
 
 - This service manually sets Authorization header using `authHeaders()`.
 - Interceptor also adds bearer token globally; this is currently redundant but functional.
+- Dashboard fallback may use `myList()` for users without global record-overview access.
+
+## `AdminService`
+
+Responsibilities:
+
+- list admin-visible users
+- enable/disable users
+- fetch file counts per user
+- delete all files for a user
+
+This service targets `/api/admin/**` and is used by the admin users page.
 
 ## `AuthInterceptor`
 
@@ -39,7 +53,8 @@ Notable design:
 ## Route Guard Integration
 
 - `AuthGuard` uses `AuthService.isAuthenticated()`.
-- Unauthorized users are redirected with `returnUrl`.
+- `AdminScopeGuard` and `SuperAdminGuard` enforce role/scope access.
+- Unauthorized users are redirected with `returnUrl` when appropriate.
 
 ## Persistence and Session Model
 
@@ -54,7 +69,7 @@ Components subscribing to `currentUser$`:
 - navbar
 - profile dialog
 - profile page
+- admin invite page
 - oauth callback update path
 
-This allows immediate UI updates after login, OAuth callback, and profile updates.
-
+This allows immediate UI updates after login, OAuth callback, profile updates, and invite acceptance.
