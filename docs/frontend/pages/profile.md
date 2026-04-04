@@ -23,19 +23,21 @@ Manage profile display data and show per-user file statistics.
 
 ## Profile Image Flow
 
-1. User selects image in edit mode.
-2. Client validates type and max size 2MB.
-3. Client generates compressed preview via canvas.
-4. On save, file uploaded to `/auth/upload-profile` with `userId`.
-5. Returned relative path stored in current user object and localStorage stream.
-6. URL assembled with cache-busting timestamp query (`?t=<ms>`).
+1. The UI resolves the avatar from the backend `profileImage` path.
+2. If no image exists, the app shows a role-aware fallback:
+   - `SUPER_ADMIN` -> super-admin styled placeholder
+   - `ADMIN` -> admin styled placeholder
+   - others -> generic user placeholder
+3. If a loaded image fails, the same fallback is applied.
+4. On save, uploaded image path is refreshed into local state via `AuthService.fetchProfile()` and `updateUser()`.
 
 ## Name Update Flow
 
-- `newName` is applied to current user object and persisted through `AuthService.updateUser`.
+- `newName` is applied to current user object and persisted through `AuthService.updateUser()`.
+- When the profile changes and no custom image is set, the fallback avatar updates with the new name/role context.
 
 ## UX Notes
 
-- uses `alert(...)` for some messages in current implementation (can be migrated to snackbars for consistency)
 - edit mode is explicit and cancellable
-
+- avatar/profile previews use the shared fallback path when image loading fails
+- statistics are loaded from the user's own files only

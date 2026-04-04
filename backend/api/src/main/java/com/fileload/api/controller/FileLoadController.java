@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.GrantedAuthority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +51,7 @@ public class FileLoadController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Create new file load")
     public ResponseEntity<FileLoadResponseDTO> createFileLoad(@RequestParam("file") MultipartFile file,
                                                               @RequestParam(required = false) String description,
@@ -73,14 +72,14 @@ public class FileLoadController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Get file load by id")
     public ResponseEntity<FileLoadResponseDTO> getFileLoad(@PathVariable Long id) {
         return ResponseEntity.ok(fileLoadService.getFileLoadById(id));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Search file loads")
     public ResponseEntity<Page<FileLoadResponseDTO>> searchFileLoads(
             @RequestParam(required = false) Long fileId,
@@ -100,7 +99,7 @@ public class FileLoadController {
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Search current user's file loads")
     public ResponseEntity<Page<FileLoadResponseDTO>> searchMyFileLoads(
             @RequestParam(required = false) Long fileId,
@@ -120,6 +119,7 @@ public class FileLoadController {
     }
 
     @GetMapping("/overview")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Get live dashboard overview metrics")
     public ResponseEntity<DashboardOverviewDTO> getDashboardOverview() {
         return ResponseEntity.ok(fileLoadService.getDashboardOverview());
@@ -178,7 +178,7 @@ public class FileLoadController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Update file status")
     public ResponseEntity<FileLoadResponseDTO> updateStatus(@PathVariable Long id,
                                                             @Valid @RequestBody UpdateStatusRequestDTO request) {
@@ -187,19 +187,8 @@ public class FileLoadController {
         logger.info("[DEBUG] updateStatus called by user: {} with authorities: {}", auth.getName(), auth.getAuthorities());
         return ResponseEntity.ok(fileLoadService.updateFileLoadStatus(id, request.getStatus(), request.getComment()));
     }
-    // Debug endpoint to check current user's authorities from Swagger UI
-    @GetMapping("/whoami")
-    @Operation(summary = "Show current user's username and authorities (for Swagger UI debug)")
-    public ResponseEntity<?> whoami() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return ResponseEntity.ok(new java.util.HashMap<String, Object>() {{
-            put("username", auth.getName());
-            put("authorities", auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toArray());
-        }});
-    }
-
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Update file metadata")
     public ResponseEntity<FileLoadResponseDTO> updateMetadata(@PathVariable Long id,
                                                               @RequestBody UpdateMetadataRequestDTO request) {
@@ -207,7 +196,7 @@ public class FileLoadController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Delete file load")
     public ResponseEntity<Void> deleteFileLoad(@PathVariable Long id) {
         fileLoadService.deleteFileLoad(id);
@@ -223,7 +212,7 @@ public class FileLoadController {
 //    }
 
     @GetMapping("/{id}/download")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     @Operation(summary = "Download original file")
     public ResponseEntity<byte[]> download(@PathVariable Long id) {
         FileLoadResponseDTO dto = fileLoadService.getFileLoadById(id);

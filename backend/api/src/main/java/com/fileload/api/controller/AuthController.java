@@ -9,6 +9,7 @@ import com.fileload.api.security.JwtUtil;
 import com.fileload.dao.repository.UserAccountRepository;
 import com.fileload.model.dto.*;
 import com.fileload.model.entity.UserAccount;
+import com.fileload.model.entity.UserRole;
 import com.fileload.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
@@ -64,11 +67,11 @@ public class AuthController {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole("ADMIN");
+        user.setRole(UserRole.USER);
 
         user = userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getTokenVersion(), user.getRole().name());
         return ResponseEntity.status(HttpStatus.CREATED).body(toAuthResponse(user, token));
     }
 
@@ -94,7 +97,7 @@ public class AuthController {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getTokenVersion(), user.getRole().name());
         return ResponseEntity.ok(toAuthResponse(user, token));
     }
 
@@ -162,10 +165,19 @@ public class AuthController {
 
     // ---------------- PROFILE UPLOAD ----------------
     @PostMapping("/upload-profile")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
     public ResponseEntity<java.util.Map<String, String>> uploadProfile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("userId") Long userId
+            @RequestParam("userId") Long userId,
+            Authentication authentication
     ) throws Exception {
+
+        UserAccount actingUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+        boolean canUpdate = actingUser.getRole() == UserRole.ADMIN || actingUser.getId().equals(userId);
+        if (!canUpdate) {
+            throw new org.springframework.security.access.AccessDeniedException("You cannot update another user's profile image");
+        }
 
         UserAccount user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -184,11 +196,12 @@ public class AuthController {
 
     // ---------------- PROFILE GET ----------------
     @GetMapping("/profile")
-    public ResponseEntity<AuthResponseDTO> getProfile(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        String email = jwtUtil.extractUsername(token);
+    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<AuthResponseDTO> getProfile(Authentication authentication) {
+        String email = authentication.getName();
         UserAccount user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        String token = jwtUtil.generateToken(user.getEmail(), user.getTokenVersion(), user.getRole().name());
         return ResponseEntity.ok(toAuthResponse(user, token));
     }
 
@@ -198,9 +211,10 @@ public class AuthController {
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole());
+        dto.setRole(user.getRole().name());
         dto.setToken(token);
         dto.setProfileImage(user.getProfileImage());
+        dto.setAdminPermissions(user.getAdminPermissions());
         return dto;
     }
 }

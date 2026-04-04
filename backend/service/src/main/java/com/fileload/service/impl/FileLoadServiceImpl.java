@@ -10,6 +10,7 @@ import com.fileload.model.dto.UpdateMetadataRequestDTO;
 import com.fileload.model.entity.FileLoad;
 import com.fileload.model.entity.FileStatus;
 import com.fileload.model.entity.UserAccount;
+import com.fileload.model.entity.UserRole;
 import com.fileload.service.batch.BatchJobLauncherService;
 import com.fileload.service.FileLoadService;
 import com.fileload.service.mapper.FileLoadMapper;
@@ -19,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -163,9 +165,7 @@ public class FileLoadServiceImpl implements FileLoadService {
     @Transactional(readOnly = true)
     public FileLoadResponseDTO getFileLoadById(Long id) {
         FileLoad entity = fetchById(id);
-        Long currentUserId = resolveCurrentUserId();
-        System.out.println("[SECURITY] getFileLoadById: fileId=" + id + ", fileOwner=" + entity.getUploadedById() + ", currentUser=" + currentUserId);
-        if (!currentUserIdEquals(entity.getUploadedById(), currentUserId)) {
+        if (!canCurrentUserAccess(entity)) {
             throw new AccessDeniedException("You do not have permission to access this file.");
         }
         return fileLoadMapper.toDto(entity);
@@ -205,6 +205,9 @@ public class FileLoadServiceImpl implements FileLoadService {
     @Transactional
     public FileLoadResponseDTO updateMetadata(Long id, UpdateMetadataRequestDTO request) {
         FileLoad entity = fetchById(id);
+        if (!canCurrentUserAccess(entity)) {
+            throw new AccessDeniedException("You do not have permission to update this file.");
+        }
         entity.setDescription(request.getDescription());
         if (request.getTags() != null) {
             String tagCsv = request.getTags().stream()
@@ -220,6 +223,12 @@ public class FileLoadServiceImpl implements FileLoadService {
     @Transactional
     public void deleteFileLoad(Long id) {
         FileLoad entity = fetchById(id);
+        if (!canCurrentUserAccess(entity)) {
+            throw new AccessDeniedException("You do not have permission to delete this file.");
+        }
+        if (isOwnedBySuperAdmin(entity) && !isCurrentUserSuperAdmin()) {
+            throw new AccessDeniedException("Files owned by SUPER_ADMIN can only be deleted by SUPER_ADMIN.");
+        }
         if (entity.getStoragePath() != null) {
             try {
                 Files.deleteIfExists(Path.of(entity.getStoragePath()));
@@ -238,23 +247,48 @@ public class FileLoadServiceImpl implements FileLoadService {
 //        return fileLoadMapper.toDto(fileLoadRepository.save(entity));
 //    }
 
-//    @Override
-//    public FileLoadResponseDTO retryFileLoad(Long id) {
-//        FileLoad entity = fetchById(id);
-//        entity.setStatus(FileStatus.PENDING);
-//        entity.setErrors(null);
-//        entity = fileLoadRepository.save(entity);
-//        launchBatch(entity.getId());
-//        return fileLoadMapper.toDto(entity);
-//    }
+    @Override
+    @Transactional
+    public FileLoadResponseDTO retryFileLoad(Long id) {
+        FileLoad entity = fetchById(id);
+        entity.setStatus(FileStatus.PENDING);
+        entity.setErrors(null);
+        entity = fileLoadRepository.save(entity);
+        launchBatch(entity.getId());
+        return fileLoadMapper.toDto(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countFilesByUserId(Long userId) {
+        return fileLoadRepository.countByUploadedById(userId);
+    }
+
+    @Override
+    @Transactional
+    public long deleteAllFilesByUserId(Long userId) {
+        if (isTargetUserSuperAdmin(userId) && !isCurrentUserSuperAdmin()) {
+            throw new AccessDeniedException("Files owned by SUPER_ADMIN can only be deleted by SUPER_ADMIN.");
+        }
+        List<FileLoad> files = fileLoadRepository.findByUploadedById(userId);
+        for (FileLoad file : files) {
+            if (file.getStoragePath() == null || file.getStoragePath().isBlank()) {
+                continue;
+            }
+            try {
+                Files.deleteIfExists(Path.of(file.getStoragePath()));
+            } catch (IOException ignored) {
+            }
+        }
+        fileLoadRepository.deleteAll(files);
+        return files.size();
+    }
 
     @Override
     @Transactional(readOnly = true)
     public byte[] downloadFile(Long id) {
         FileLoad entity = fetchById(id);
-        Long currentUserId = resolveCurrentUserId();
-        System.out.println("[SECURITY] downloadFile: fileId=" + id + ", fileOwner=" + entity.getUploadedById() + ", currentUser=" + currentUserId);
-        if (!currentUserIdEquals(entity.getUploadedById(), currentUserId)) {
+        if (!canCurrentUserAccess(entity)) {
             throw new AccessDeniedException("You do not have permission to download this file.");
         }
         try {
@@ -369,6 +403,37 @@ public class FileLoadServiceImpl implements FileLoadService {
 
     private boolean currentUserIdEquals(Long ownerId, Long currentUserId) {
         return ownerId != null && currentUserId != null && ownerId.equals(currentUserId);
+    }
+
+    private boolean canCurrentUserAccess(FileLoad fileLoad) {
+        UserAccount currentUser = resolveCurrentUser();
+        if (currentUser == null) {
+            return false;
+        }
+        if (currentUser.getRole() == UserRole.ADMIN || currentUser.getRole() == UserRole.SUPER_ADMIN) {
+            return true;
+        }
+        return currentUserIdEquals(fileLoad.getUploadedById(), currentUser.getId());
+    }
+
+    private boolean isCurrentUserSuperAdmin() {
+        UserAccount currentUser = resolveCurrentUser();
+        return currentUser != null && currentUser.getRole() == UserRole.SUPER_ADMIN;
+    }
+
+    private boolean isOwnedBySuperAdmin(FileLoad fileLoad) {
+        if (fileLoad.getUploadedById() == null) {
+            return false;
+        }
+        return userAccountRepository.findById(fileLoad.getUploadedById())
+                .map(user -> user.getRole() == UserRole.SUPER_ADMIN)
+                .orElse(false);
+    }
+
+    private boolean isTargetUserSuperAdmin(Long userId) {
+        return userAccountRepository.findById(userId)
+                .map(user -> user.getRole() == UserRole.SUPER_ADMIN)
+                .orElse(false);
     }
 }
 

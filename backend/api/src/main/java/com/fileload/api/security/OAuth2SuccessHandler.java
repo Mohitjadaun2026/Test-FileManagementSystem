@@ -1,6 +1,7 @@
 package com.fileload.api.security;
 
 import com.fileload.model.entity.UserAccount;
+import com.fileload.model.entity.UserRole;
 import com.fileload.dao.repository.UserAccountRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,12 +56,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                         newUser.setEmail(email);
                         newUser.setUsername(name != null && !name.isEmpty() ? name : email.split("@")[0]);
                         newUser.setPassword(""); // OAuth2 users don't have password
-                        newUser.setRole("USER");
+                        newUser.setRole(UserRole.USER);
                         return userRepository.save(newUser);
                     });
 
             // Generate JWT token
-            String token = jwtUtil.generateToken(user.getEmail());
+            String token = jwtUtil.generateToken(user.getEmail(), user.getTokenVersion(), user.getRole().name());
 
             // Redirect to frontend callback with token + user details
             String redirectUrl = UriComponentsBuilder.fromHttpUrl(buildFrontendUrl("/oauth/callback"))
@@ -68,7 +69,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .queryParam("email", user.getEmail())
                     .queryParam("username", user.getUsername())
                     .queryParam("id", user.getId())
-                    .queryParam("role", user.getRole())
+                    .queryParam("role", user.getRole().name())
+                    .queryParam("adminPermissions", user.getAdminPermissions())
                     .build()
                     .toUriString();
             response.sendRedirect(redirectUrl);

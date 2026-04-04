@@ -8,6 +8,7 @@ public class AuthResponseDTO {
     private String role;
     private String token;
     private String profileImage;
+    private String adminPermissions;
     public Long getId() {
         return id;
     }
@@ -54,6 +55,14 @@ public class AuthResponseDTO {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public String getAdminPermissions() {
+        return adminPermissions;
+    }
+
+    public void setAdminPermissions(String adminPermissions) {
+        this.adminPermissions = adminPermissions;
     }
 
 }

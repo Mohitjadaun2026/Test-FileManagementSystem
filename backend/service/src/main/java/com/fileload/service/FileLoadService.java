@@ -31,6 +31,12 @@ public interface FileLoadService {
 
 //    FileLoadResponseDTO retryFileLoad(Long id);
 
+    FileLoadResponseDTO retryFileLoad(Long id);
+
+    long countFilesByUserId(Long userId);
+
+    long deleteAllFilesByUserId(Long userId);
+
     byte[] downloadFile(Long id);
 
     DashboardOverviewDTO getDashboardOverview();

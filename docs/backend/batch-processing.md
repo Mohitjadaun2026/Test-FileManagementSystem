@@ -1,53 +1,43 @@
 # Batch Processing and File Lifecycle
 
-## Components
+## Main components
 
-- `BatchConfig` - declares job/step definitions.
-- `BatchJobLauncherService` - async launcher, delayed start, retry wrapper.
-- `FileProcessingTasklet` - status transitions and CSV validation execution.
-- `RecordCountUtil` - CSV structure + content validation logic.
+- `BatchConfig` - job and step definitions
+- `BatchJobLauncherService` - async launch orchestration
+- `FileProcessingTasklet` - executes validation and status transitions
+- `RecordCountUtil` - CSV schema/content checks
 
-## Lifecycle State Machine
+## Lifecycle
 
-1. Upload endpoint creates row with `PENDING`.
-2. `BatchJobLauncherService.launch(fileLoadId)` runs on async executor.
-3. Launcher waits `PENDING_VISIBLE_DELAY_MS` (10s).
-4. Job starts and tasklet sets `PROCESSING` in new tx.
-5. Tasklet waits `PROCESSING_VISIBLE_DELAY_MS` (10s).
-6. `RecordCountUtil.analyzeFile` evaluates content.
-7. Final state:
-   - `SUCCESS` + `recordCount`
-   - `FAILED` + aggregated error message
+1. Upload API stores file and creates DB row with `PENDING`.
+2. Batch launcher is triggered asynchronously.
+3. Worker marks row `PROCESSING`.
+4. CSV is analyzed.
+5. Final state becomes:
+   - `SUCCESS` with computed `recordCount`, or
+   - `FAILED` with error text
 
-## Validation Rules in `RecordCountUtil`
+## Validation rule summary
 
-Expected CSV header:
+Expected header:
 
 `tradeId,clientId,stockSymbol,quantity,price,tradeType`
 
-Rules per row:
+Per-row checks:
 
-- exactly 6 columns
-- all required fields present
-- `quantity` integer > 0
-- `price` numeric > 0
-- `tradeType` in `{BUY, SELL}`
+- 6 columns required
+- no mandatory empty values
+- `quantity` positive integer
+- `price` positive number
+- `tradeType` in `BUY` or `SELL`
 
-On any invalid row, processing returns failed with combined messages.
+## Retry and recovery
 
-## Failure Handling
+- Failed rows can be retried through admin endpoint (`/api/admin/files/{id}/reprocess`, super-admin only).
+- Delete operations attempt both file-system cleanup and DB cleanup.
 
-- Launcher catches execution issues and marks row `FAILED`.
-- Tasklet catches runtime errors and marks row `FAILED`.
-- Retry endpoint can relaunch failed rows by resetting status.
+## Operational notes
 
-## Why Delays Exist
-
-Both `PENDING` and `PROCESSING` delays are intentionally introduced so UI polling can visibly show intermediate states instead of instantly jumping from upload to final status.
-
-## Concurrency Considerations
-
-- Tasklet status updates use `REQUIRES_NEW` transaction template.
-- Launcher uses non-transactional template for job start to avoid transaction context conflicts.
-- Launcher has limited retry when JobRepository reports existing tx context.
-
+- Processing is asynchronous, so list/dashboard polling is expected.
+- A file can fail validation even if upload itself succeeds.
+- Physical filename uniqueness is handled by appending `-1`, `-2`, ... when a name collision exists in `uploads/`.

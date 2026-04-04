@@ -1,5 +1,7 @@
 package com.fileload.api.security;
 
+import com.fileload.dao.repository.UserAccountRepository;
+import com.fileload.model.entity.UserAccount;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +25,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    @Autowired
+    private UserAccountRepository userAccountRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -31,15 +36,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String username = null;
         String token = null;
+        Integer tokenVersion = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             if (jwtUtil.isTokenValid(token)) {
                 username = jwtUtil.extractUsername(token);
+                tokenVersion = jwtUtil.extractTokenVersion(token);
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserAccount account = userAccountRepository.findByEmail(username).orElse(null);
+            if (account == null || tokenVersion == null || account.getTokenVersion() != tokenVersion) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

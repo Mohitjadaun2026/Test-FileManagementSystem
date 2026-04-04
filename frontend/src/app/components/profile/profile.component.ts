@@ -53,6 +53,25 @@ export class ProfileComponent implements OnInit {
     this.profileImage = this.auth.getProfileImageUrl(this.currentUser);
   }
 
+  getProfileImageFallback(): string {
+    return this.auth.getProfileImageFallback(this.currentUser);
+  }
+
+  handleProfileImageError(): void {
+    this.profileImage = this.getProfileImageFallback();
+  }
+
+  getRoleLabel(role?: string | null): string {
+    if (!role) {
+      return 'User';
+    }
+
+    return role
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+  }
+
   loadFileStatistics(): void {
     // Fetch all files with default criteria
     const criteria: SearchCriteria = {
@@ -93,6 +112,7 @@ export class ProfileComponent implements OnInit {
     this.isEditing = false;
     this.newName = this.currentUser?.name || this.currentUser?.username || '';
     this.selectedFile = null;
+    this.loadProfileImage();
   }
 
  onFileSelected(event: any): void {
@@ -138,11 +158,13 @@ export class ProfileComponent implements OnInit {
               this.finishProfileUpdate();
             },
             error: () => {
+                  this.loadProfileImage();
               this.finishProfileUpdate();
             }
           });
         },
         error: () => {
+              this.loadProfileImage();
           this.finishProfileUpdate();
         }
       });
@@ -157,6 +179,7 @@ finishProfileUpdate(): void {
 
 
     this.auth.updateUser(this.currentUser!);
+    this.loadProfileImage();
   }
 
   this.isEditing = false;
