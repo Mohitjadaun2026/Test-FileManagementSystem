@@ -20,9 +20,7 @@
         <button mat-stroked-button class="hdr-btn download" (click)="download()" matTooltip="Download file">
           <mat-icon>download</mat-icon> Download
         </button>
-        <button mat-stroked-button class="hdr-btn status" (click)="openStatusDialog()" matTooltip="Update status">
-          <mat-icon>edit_note</mat-icon> Update Status
-        </button>
+
         <button mat-stroked-button class="hdr-btn danger" (click)="delete()" matTooltip="Delete file">
           <mat-icon>delete_outline</mat-icon> Delete
         </button>
@@ -135,15 +133,7 @@
       </div>
     </div>
 
-    <div class="status-wide">
-      <div class="status-card">
-        <div class="edit-card-header">
-          <mat-icon class="edit-icon">swap_horiz</mat-icon>
-          <span>Update Status</span>
-        </div>
-        <app-status-update [fileId]="file.id" [currentStatus]="file.status" (updated)="load()"></app-status-update>
-      </div>
-    </div>
+   
 
   </ng-container>
 
