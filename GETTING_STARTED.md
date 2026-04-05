@@ -8,58 +8,52 @@ Get the application running in 6 steps:
 
 ### Step 1: Create Environment File
 
-Create `.env` in `backend/api/` with your configuration:
+The `.env` file template is already in `backend/api/.env` with placeholder values (`xxxxxx`).
 
-```dotenv
-# ============================================================================
-# Database Configuration
-# ============================================================================
-DB_URL=jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-DB_USERNAME=root
-DB_PASSWORD=xxxxxx
+Update it with your actual credentials:
 
-# ============================================================================
-# Google OAuth2 Configuration
-# ============================================================================
-GOOGLE_CLIENT_ID=xxxxxx.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=xxxxxx
-GOOGLE_REDIRECT_URI=https://localhost:8080/login/oauth2/code/google
-
-# ============================================================================
-# JWT Configuration
-# ============================================================================
-JWT_SECRET=xxxxxx_minimum_32_characters_long
-JWT_EXPIRATION=86400000
-
-# ============================================================================
-# Super-Admin Bootstrap Configuration
-# ============================================================================
-# These credentials are used to create the super-admin account on FIRST startup
-# After first startup, these are ignored (account is already in database)
-SUPER_ADMIN_EMAIL=superadmin@gmail.com
-SUPER_ADMIN_USERNAME=superadmin
-SUPER_ADMIN_PASSWORD=xxxxxx
-
-# ============================================================================
-# Server Configuration
-# ============================================================================
-SERVER_PORT=8080
-SERVER_SSL_ENABLED=true
-SERVER_SSL_KEY_STORE=classpath:keystore-local.pfx
-SERVER_SSL_KEY_STORE_PASSWORD=xxxxxx
-SERVER_SSL_KEY_STORE_TYPE=PKCS12
-FRONTEND_BASE_URL=https://localhost:4200
-
-# ============================================================================
-# Email Configuration (Gmail SMTP)
-# ============================================================================
-# For Gmail: Generate an App Password at https://myaccount.google.com/apppasswords
-MAIL_SMTP_HOST=smtp.gmail.com
-MAIL_SMTP_PORT=587
-MAIL_SMTP_USERNAME=xxxxxx@gmail.com
-MAIL_SMTP_PASSWORD=xxxxxx
-MAIL_FROM=xxxxxx@gmail.com
+```powershell
+cd backend/api
+# Edit .env file and replace all xxxxxx values with your credentials
 ```
+
+**Where to Get Each Credential:**
+
+1. **Database Password** (DB_PASSWORD)
+   - Your MySQL password (default: root, or your custom password)
+
+2. **Google OAuth2 Credentials** (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+   - Visit: https://console.cloud.google.com/
+   - Create a new project
+   - Enable Google+ API
+   - Create OAuth 2.0 credentials (Web application type)
+   - Add authorized redirect URIs:
+     - `https://localhost:8080/login/oauth2/code/google`
+     - `http://localhost:4200/oauth2-callback`
+   - Copy Client ID and Secret to `.env`
+
+3. **JWT Secret** (JWT_SECRET)
+   - Use any strong random string (minimum 32 characters)
+   - Example: Use a password generator or: `random_string_with_16plus_chars`
+
+4. **Super-Admin Password** (SUPER_ADMIN_PASSWORD)
+   - Your desired password for first login
+   - Created automatically on first backend startup
+   - Use strong password (16+ characters recommended)
+
+5. **Email Configuration** (MAIL_SMTP_USERNAME, MAIL_SMTP_PASSWORD)
+   - Username: Your Gmail email address
+   - Password: Gmail App Password (NOT your regular Gmail password)
+   - To generate app password:
+     - Go to https://myaccount.google.com/apppasswords
+     - Enable 2-factor authentication first
+     - Select "Mail" and "Windows Computer"
+     - Copy the 16-character app password
+
+6. **SSL Keystore Password** (SERVER_SSL_KEY_STORE_PASSWORD)
+   - Your keystore file password (for local SSL certificate)
+
+> **For detailed information on each variable**, see `.env.example` file or full documentation below
 
 See [Environment Setup](#environment-setup) for detailed variable descriptions.
 
