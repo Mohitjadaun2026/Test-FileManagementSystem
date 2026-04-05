@@ -1,0 +1,4 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD9301,CLT931,AMZN,3,0,BUY
+TRD9302,CLT932,GOOG,6,-141.30,SELL
+

@@ -2,50 +2,49 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { FileLoadService } from '../../services/file-load.service';
 
 interface UploadItem {
-  file: File;
-  progress: number;
-  state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
-  sub?: Subscription;
-  startedAt?: number;
-  finishTimer?: ReturnType<typeof setTimeout>;
+file: File;
+progress: number;
+state: 'queued' | 'uploading' | 'done' | 'error' | 'canceled';
+selected?: boolean;
+sub?: Subscription;
 }
 
+const UPLOADS_STORAGE_KEY = 'fileUploadQueue';
+const MAX_FILES = 100;
+
 @Component({
-  selector: 'app-file-upload',
-  templateUrl: './file-upload.component.html',
-  styleUrls: ['./file-upload.component.scss']
+selector: 'app-file-upload',
+templateUrl: './file-upload.component.html',
+styleUrls: ['./file-upload.component.scss']
 })
 export class FileUploadComponent {
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+@ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  readonly maxFileSizeBytes = 10 * 1024 * 1024;
-  readonly acceptedExtensions = ['.csv', '.txt', '.xml', '.xls', '.xlsx'];
-  readonly acceptedMimeTypes = [
-    'text/csv',
-    'text/plain',
-    'application/xml',
-    'text/xml',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
+readonly maxFileSizeBytes = 20 * 1024 * 1024;
+readonly acceptedExtensions = ['.csv'];
+readonly acceptedMimeTypes = ['text/csv'];
 
-  uploads: UploadItem[] = [];
-  description = '';
-  tagsText = '';
-  isOver = false;
-  private readonly minVisibleUploadMs = 2200;
+uploads: UploadItem[] = [];
+description = '';
+tagsText = '';
+isOver = false;
 
-  constructor(private api: FileLoadService, private snack: MatSnackBar) {}
+constructor(
+    private api: FileLoadService,
+    private snack: MatSnackBar,
+    private router: Router
+  ) {}
 
   get acceptedFileHint(): string {
-    return `${this.acceptedExtensions.join(', ')} · max 10 MB`;
+    return `CSV only · max 20 MB`;
   }
 
   get isUploading(): boolean {
-    return this.uploads.some((u) => u.state === 'uploading');
+    return this.uploads.some(u => u.state === 'uploading');
   }
 
   get overallProgress(): number {
@@ -54,15 +53,29 @@ export class FileUploadComponent {
     return Math.round(total / this.uploads.length);
   }
 
-  get overallStatusText(): string {
-    const done = this.uploads.filter((u) => u.state === 'done').length;
-    const failed = this.uploads.filter((u) => u.state === 'error').length;
-    const canceled = this.uploads.filter((u) => u.state === 'canceled').length;
-    if (this.isUploading) return `Uploading files... ${this.overallProgress}%`;
-    if (done || failed || canceled) return `Completed: ${done} successful, ${failed} failed, ${canceled} canceled`;
-    return 'Ready to upload';
+  // Selection helpers
+  get allSelected(): boolean {
+    return this.uploads.length > 0 && this.uploads.every(u => u.selected);
   }
 
+  get someSelected(): boolean {
+    return this.uploads.some(u => u.selected) && !this.allSelected;
+  }
+
+  get anySelected(): boolean {
+    return this.uploads.some(u => u.selected);
+  }
+
+  get selectedCount(): number {
+    return this.uploads.filter(u => u.selected).length;
+  }
+
+  toggleSelectAll(checked: boolean) {
+    this.uploads.forEach(u => u.selected = checked);
+    this.updateAndPersistUploads();
+  }
+
+  // File input / drag & drop
   onFileSelected(ev: Event) {
     const target = ev.target as HTMLInputElement;
     const files = target.files;
@@ -78,117 +91,132 @@ export class FileUploadComponent {
     if (files?.length) this.queueFiles(Array.from(files));
   }
 
-  onDragOver(ev: DragEvent) {
-    ev.preventDefault();
-    this.isOver = true;
-  }
+  onDragOver(ev: DragEvent) { ev.preventDefault(); this.isOver = true; }
+  onDragLeave() { this.isOver = false; }
 
-  onDragLeave() {
-    this.isOver = false;
+  triggerFilePick() {
+    this.fileInput.nativeElement.click();
   }
 
   private isValidFile(file: File): boolean {
     const lower = file.name.toLowerCase();
-    const hasAllowedExtension = this.acceptedExtensions.some((ext) => lower.endsWith(ext));
+    const hasAllowedExtension = this.acceptedExtensions.some(ext => lower.endsWith(ext));
     const hasAllowedMime = !file.type || this.acceptedMimeTypes.includes(file.type);
+
     if (!(hasAllowedExtension && hasAllowedMime)) {
-      this.snack.open(`Unsupported file type: ${file.name}`, 'Dismiss', { duration: 3500 });
+      this.snack.open(`Only CSV files are allowed: ${file.name}`, 'Dismiss', { duration: 3500 });
       return false;
     }
+
     if (file.size > this.maxFileSizeBytes) {
-      this.snack.open(`File is too large: ${file.name} (max 10 MB)`, 'Dismiss', { duration: 3500 });
+      this.snack.open(`File exceeds 20 MB limit: ${file.name}`, 'Dismiss', { duration: 3500 });
       return false;
     }
+
     return true;
   }
 
-  queueFiles(files: File[]) {
+  private queueFiles(files: File[]) {
+    if (this.uploads.length + files.length > MAX_FILES) {
+      this.snack.open(`You can upload a maximum of ${MAX_FILES} files at once. You selected ${files.length}.`, 'Dismiss', { duration: 5000 });
+      return;
+    }
+
     for (const file of files) {
       if (!this.isValidFile(file)) continue;
       this.uploads.push({ file, progress: 0, state: 'queued' });
     }
+    this.updateAndPersistUploads();
   }
 
   startUploads() {
-    if (this.isUploading) return;
+    if (!this.uploads.length || this.isUploading) return;
 
-    this.startNextUpload();
-  }
-
-  private startNextUpload() {
-    if (this.isUploading) return;
-
-    const next = this.uploads.find((u) => u.state === 'queued');
-    if (!next) return;
-
-    const tags = this.tagsText.split(',').map((t) => t.trim()).filter(Boolean);
+    const tags = this.tagsText.split(',').map(t => t.trim()).filter(Boolean);
     const extra = { description: this.description || undefined, tags: tags.length ? tags : undefined };
 
-    next.state = 'uploading';
-    next.startedAt = Date.now();
-    next.progress = 3;
+    const uploadObservables = this.uploads.map(u => {
+      u.state = 'uploading';
+      u.progress = 0;
+      return this.api.upload(u.file, extra).toPromise().then(() => {
+        u.progress = 100;
+        u.state = 'done';
+      }).catch(() => {
+        u.progress = 0;
+        u.state = 'error';
+      });
+    });
 
-    next.sub = this.api.upload(next.file, extra).subscribe({
-      next: (event) => {
-        if (event.type === HttpEventType.UploadProgress) {
-          if (event.total) {
-            const actual = Math.round((100 * event.loaded) / event.total);
-            // Keep headroom so users can still cancel before final commit.
-            next.progress = Math.min(96, Math.max(next.progress, actual));
-          } else {
-            next.progress = Math.min(90, next.progress + 7);
-          }
-        } else if (event.type === HttpEventType.Response) {
-          const elapsed = Date.now() - (next.startedAt || Date.now());
-          const wait = Math.max(0, this.minVisibleUploadMs - elapsed);
-          next.progress = Math.max(next.progress, 98);
-
-          next.finishTimer = setTimeout(() => {
-            if (next.state === 'canceled') return;
-            next.progress = 100;
-            next.state = 'done';
-            next.finishTimer = undefined;
-            this.snack.open(`Upload successful: ${next.file.name}`, 'OK', { duration: 2000 });
-            this.startNextUpload();
-          }, wait);
-        }
-      },
-      error: () => {
-        if (next.state === 'canceled') return;
-        next.state = 'error';
-        next.sub = undefined;
-        this.snack.open(`Upload failed: ${next.file.name}`, 'Dismiss', { duration: 3500 });
-        this.startNextUpload();
-      },
-      complete: () => {
-        next.sub = undefined;
-      }
+    Promise.all(uploadObservables).then(() => {
+      this.updateAndPersistUploads();
+      this.snack.open(`All files uploaded successfully!`, 'OK', { duration: 3000 });
+      this.uploads = [];
+      localStorage.removeItem(UPLOADS_STORAGE_KEY);
+      this.router.navigate(['/files'], { queryParams: { refresh: Date.now() } });
     });
   }
 
+  // Remove / cancel files
   cancelUpload(item: UploadItem) {
-    if (item.state !== 'uploading' && item.state !== 'queued') return;
-
-    if (item.finishTimer) {
-      clearTimeout(item.finishTimer);
-      item.finishTimer = undefined;
-    }
-
     item.sub?.unsubscribe();
-    item.sub = undefined;
-    item.state = 'canceled';
-    item.progress = 0;
-    this.snack.open(`Upload canceled: ${item.file.name}`, 'OK', { duration: 1500 });
+    if (item.state === 'queued' || item.state === 'uploading') {
+      this.uploads = this.uploads.filter(u => u !== item);
+      this.updateAndPersistUploads();
+    }
+  }
 
-    // Continue queue if an active upload was canceled.
-    this.startNextUpload();
+  removeSelected() {
+    this.uploads.forEach(u => u.selected && u.sub?.unsubscribe());
+    this.uploads = this.uploads.filter(u => !u.selected);
+    this.updateAndPersistUploads();
+    this.snack.open('Selected files removed', 'Dismiss', { duration: 3000 });
   }
 
   clearDone() {
-    this.uploads = this.uploads.filter((u) => u.state !== 'done' && u.state !== 'canceled');
+    this.uploads = this.uploads.filter(u => u.state !== 'done');
+    this.updateAndPersistUploads();
   }
 
-  triggerFilePick() {
-    this.fileInput.nativeElement.click();
+  deleteAll() {
+    this.uploads.forEach(u => u.sub?.unsubscribe());
+    this.uploads = [];
+    localStorage.removeItem(UPLOADS_STORAGE_KEY);
+    this.snack.open('All files removed', 'Dismiss', { duration: 3000 });
+  }
+
+  // Storage persistence
+  private persistUploadsToStorage() {
+    const persisted = this.uploads.map(u => ({
+      name: u.file?.name,
+      size: u.file?.size,
+      type: u.file?.type,
+      lastModified: u.file?.lastModified,
+      progress: u.progress,
+      state: u.state,
+      selected: u.selected
+    }));
+    localStorage.setItem(UPLOADS_STORAGE_KEY, JSON.stringify(persisted));
+  }
+
+  private restoreUploadsFromStorage() {
+    const raw = localStorage.getItem(UPLOADS_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const arr = JSON.parse(raw);
+      this.uploads = arr.map((item: any) => ({
+        file: { name: item.name, size: item.size, type: item.type, lastModified: item.lastModified } as File,
+        progress: item.progress,
+        state: item.state,
+        selected: item.selected
+      }));
+    } catch {}
+  }
+
+  private updateAndPersistUploads() {
+    this.persistUploadsToStorage();
+  }
+
+  ngOnInit() {
+    this.restoreUploadsFromStorage();
   }
 }

@@ -19,8 +19,34 @@ public class UserAccount {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role;
+    private UserRole role = UserRole.USER;
+
+    @Column(name = "profile_image")
+    private String profileImage;
+
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "account_locked_until")
+    private java.time.LocalDateTime accountLockedUntil;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private UserRole disabledByRole;
+
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
+
+    @Column(name = "admin_permissions", length = 2000)
+    private String adminPermissions;
+
+    public UserAccount() {
+    }
 
     public Long getId() {
         return id;
@@ -54,12 +80,68 @@ public class UserAccount {
         this.password = password;
     }
 
-    public String getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(UserRole role) {
         this.role = role;
     }
-}
 
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public java.time.LocalDateTime getAccountLockedUntil() {
+        return accountLockedUntil;
+    }
+
+    public void setAccountLockedUntil(java.time.LocalDateTime accountLockedUntil) {
+        this.accountLockedUntil = accountLockedUntil;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public UserRole getDisabledByRole() {
+        return disabledByRole;
+    }
+
+    public void setDisabledByRole(UserRole disabledByRole) {
+        this.disabledByRole = disabledByRole;
+    }
+
+    public int getTokenVersion() {
+        return tokenVersion;
+    }
+
+    public void setTokenVersion(int tokenVersion) {
+        this.tokenVersion = tokenVersion;
+    }
+
+    public String getAdminPermissions() {
+        return adminPermissions;
+    }
+
+    public void setAdminPermissions(String adminPermissions) {
+        this.adminPermissions = adminPermissions;
+    }
+
+}

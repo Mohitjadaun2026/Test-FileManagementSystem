@@ -19,6 +19,42 @@
   <!-- Table Card -->
   <div class="table-card">
 
+    <div class="bulk-toolbar" *ngIf="dataSource.data.length > 0">
+
+      <div class="bulk-info">
+    <span *ngIf="selectedCount() === 0">
+      {{ total }} files
+    </span>
+
+        <span *ngIf="selectedCount() > 0">
+      <strong>{{ selectedCount() }}</strong> selected
+    </span>
+      </div>
+
+      <div class="bulk-actions">
+
+        <!-- Show only when needed -->
+        <button
+                *ngIf="selectedCount() > 0"
+                mat-flat-button
+                color="warn"
+                (click)="deleteSelected()">
+
+          <mat-icon>delete</mat-icon>
+          Delete Selected
+        </button>
+
+        <!-- Optional -->
+        <button
+                mat-stroked-button
+                (click)="deleteAllMatching()">
+
+          Delete All
+        </button>
+
+      </div>
+    </div>
+
     <!-- Loading bar -->
     <mat-progress-bar *ngIf="loading" mode="indeterminate" class="progress-bar"></mat-progress-bar>
 
@@ -33,6 +69,23 @@
     <!-- Table -->
     <div class="table-wrapper" *ngIf="dataSource.data.length > 0">
       <table mat-table [dataSource]="dataSource" matSort (matSortChange)="sortChange($event)" class="files-table">
+
+        <!-- Select Column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox
+              [checked]="allVisibleSelected()"
+              [indeterminate]="someVisibleSelected()"
+              (change)="toggleSelectAllVisible($event.checked)">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [checked]="isRowSelected(row)"
+              (change)="toggleRowSelection(row, $event.checked)">
+            </mat-checkbox>
+          </td>
+        </ng-container>
 
         <!-- ID Column -->
         <ng-container matColumnDef="id">

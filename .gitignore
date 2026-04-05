@@ -19,3 +19,10 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local environment secrets
+.env
+.env.*
+backend/api/.env
+backend/api/.env.*
+!backend/api/.env.example

@@ -1,0 +1,4 @@
+id,client,stock,qty,price,type
+TRD9001,CLT901,AAPL,10,189.50,BUY
+TRD9002,CLT902,MSFT,5,320.25,SELL
+

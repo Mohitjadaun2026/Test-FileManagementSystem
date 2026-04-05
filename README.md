@@ -1,300 +1,392 @@
-# File Management System
+# 📁 TradeNest - File Management System
 
-This project is a **File Management System** built with:
-- `frontend/` -> Angular web application
-- `backend/` -> Spring Boot API (multi-module Maven project)
+A modern, full-stack **CSV file management and processing platform** for uploading, managing, and processing CSV files with built-in security and role-based access control.
 
-This README is written in simple language so that any new team member can run and understand the project quickly.
+**Built with**: Java 21 | Spring Boot 3 | Angular 17 | MySQL 8
 
 ---
 
-## 1) What This Project Does
+## ⚡ Get Started in 5 Minutes
 
-The system helps users:
-1. Register and login
-2. Upload trade files (CSV)
-3. Track file processing status
-4. View file details and record count
-5. Search and filter file history
+### Prerequisites
+Make sure you have these installed:
+- **Java 21+** - [Download](https://www.oracle.com/java/technologies/downloads/#java21)
+- **MySQL 8+** - [Download](https://dev.mysql.com/downloads/mysql/) or use Docker
+- **Node.js 18+** - [Download](https://nodejs.org/)
 
-### Status flow used in project
+### Quick Setup (Copy & Paste)
 
-`PENDING -> PROCESSING -> SUCCESS / FAILED`
+**Step 1: Create Environment File**
 
-So when a file is uploaded, it is first shown as pending, then processed in backend, then finally marked success or failed.
+Create `.env` file in `backend/api/` directory with:
 
----
-
-## 2) Project Structure
-
-```text
-file-load-ui-Test-main/
-  frontend/                  # Angular app
-  backend/                   # Spring Boot multi-module backend
-	api/                     # REST controllers, security, app startup
-	service/                 # business logic + batch orchestration
-	dao/                     # repositories
-	model/                   # entities and DTOs
-  package.json               # root helper scripts
-  README.md
+```dotenv
+DB_URL=jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_USERNAME=root
+DB_PASSWORD=root
+GOOGLE_CLIENT_ID=xxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxxxxx
+GOOGLE_REDIRECT_URI=http://localhost:8080/login/oauth2/code/google
+JWT_SECRET=your_strong_secret_key_minimum_32_characters_long
+JWT_EXPIRATION=86400000
+SERVER_PORT=8080
+FRONTEND_BASE_URL=https://localhost:4200
+SUPER_ADMIN_EMAIL=superadmin@gmail.com
+SUPER_ADMIN_PASSWORD=admin@123
 ```
 
----
+> **Replace `xxxxxx`** with your actual Google OAuth2 credentials. See `docs/GETTING_STARTED.md` for details.
 
-## 3) Prerequisites (Install Once)
-
-Install these tools first:
-- Java 21+
-- Maven 3.9+
-- Node.js 18+ (npm included)
-- MySQL 8+
-
-Check installation with:
+**Step 2: Start MySQL**
 
 ```powershell
-java -version
-mvn -v
-node -v
-npm -v
+# Windows
+net start MySQL80
+
+# Or use Docker
+docker run --name mysql8 -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -d mysql:8
 ```
 
-If `mvn` is not recognized, Maven is not added to PATH.
-
----
-
-## 4) One-Time Setup
-
-Open terminal in project root:
+**Step 3: Start Backend** (Terminal 1)
 
 ```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
+cd backend/api
+mvn spring-boot:run
 ```
 
-Install frontend dependencies:
+Wait for: `Started ApiApplication in X.XXX seconds`
+
+**Step 4: Start Frontend** (Terminal 2)
 
 ```powershell
-npm --prefix frontend install
-```
-
-Optional backend build check:
-
-```powershell
-mvn -f backend/pom.xml -DskipTests clean install
-```
-
----
-
-## 5) Run the Project (Day-to-Day)
-
-Run backend and frontend in **two separate terminals**.
-
-### Terminal 1 - Backend
-
-```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
-npm run backend
-```
-
-### Terminal 2 - Frontend
-
-```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
-npm run frontend
-```
-
-### Open URLs
-
-- Frontend app: `http://localhost:4200`
-- Backend API base: `http://localhost:8080/api`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-
----
-
-## 6) Important Config (Database + API)
-
-Backend config file: `backend/api/src/main/resources/application.yml`
-
-Current local defaults:
-- DB URL: `jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`
-- DB Username: `root`
-- DB Password: from `DB_PASSWORD` env var (fallback exists in config)
-- Backend port: `8080`
-
-Frontend API config file: `frontend/src/environments/environment.ts`
-
-Current API URL:
-- `http://localhost:8080/api`
-
-If your DB credentials are different, set env vars before starting backend:
-
-```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-$env:DB_USERNAME="root"
-$env:DB_PASSWORD="your_password_here"
-```
-
----
-
-## 7) Feature Walkthrough (Business Flow)
-
-### A) Register
-- User enters username/email/password
-- Frontend sends request to backend auth API
-- User account is created in database
-
-### B) Login
-- User submits credentials
-- Backend validates and returns JWT token
-- Frontend stores token and sends it in future requests
-
-### C) Upload file
-- User selects CSV file
-- Frontend validates type/size
-- File uploads with progress indicator
-- Backend stores file and creates file-load record
-
-### D) Processing
-- File status is visible in list
-- Backend processing updates status and record count
-- Frontend refreshes to show latest status
-
-### E) File list and filtering
-- Users can search by id/name/status/date/range
-- Table shows key columns and actions
-
-### F) File details
-- User can open complete details
-- Shows metadata, record count, and errors if any
-
----
-
-## 8) Where Data Is Saved
-
-### Uploaded files on disk
-
-Files are saved in:
-- `backend/api/uploads/`
-
-The backend may store files with a generated prefix for uniqueness (to avoid file name collisions).
-
-### Metadata in database
-
-File details (status, count, errors, etc.) are stored in database table(s) managed by backend modules.
-
----
-
-## 9) Common Commands (Quick Reference)
-
-From project root:
-
-```powershell
-# run backend
-npm run backend
-
-# run frontend
-npm run frontend
-
-# run frontend via default start
+cd frontend
+npm install
 npm start
 ```
 
-Backend only (from `backend/` folder):
+Wait for: `✔ Compiled successfully`
+
+**Step 5: Login & Test**
+
+- Open: `https://localhost:4200`
+- Email: `superadmin@gmail.com`
+- Password: `admin@123` (from `.env`)
+- Click "Upload File" to test
+
+✅ **Done!** You're now running TradeNest!
+
+---
+
+## 📚 Complete Documentation
+
+All documentation is in the `docs/` folder. Choose your role:
+
+| Role | Start Here | Time |
+|------|-----------|------|
+| 👤 **New to Project** | `docs/GETTING_STARTED.md` | 10 min |
+| 👨‍💻 **Backend Developer** | `docs/backend/README.md` | 30 min |
+| 🎨 **Frontend Developer** | `docs/frontend/README.md` | 30 min |
+| 🔧 **DevOps/Operations** | `docs/GETTING_STARTED.md` (Detailed Setup) | 20 min |
+| 🔐 **Security Team** | `docs/security/README.md` | 15 min |
+| ⚡ **Need Quick Commands** | `docs/GETTING_STARTED.md` (Quick Reference) | 5 min |
+
+### Documentation Files
+
+```
+docs/
+├── README.md                    ← Documentation Hub
+├── GETTING_STARTED.md           ← Setup + Config + Quick Reference (BEST FOR NEW USERS)
+├── backend/                     ← Backend architecture & APIs
+├── frontend/                    ← Frontend structure & pages
+└── security/                    ← Security, auth, permissions
+```
+
+---
+
+## ✨ Key Features
+
+### 👤 User Features
+- ✅ Local login + Google OAuth2
+- ✅ Upload CSV files (max 20MB)
+- ✅ Search & filter files
+- ✅ Download files
+- ✅ Profile management
+- ✅ Real-time dashboard
+
+### 🔐 Admin Features
+- ✅ Block/unblock users
+- ✅ View user files
+- ✅ Delete all user files
+- ✅ Permission-based access
+
+### 🚀 Super-Admin Features
+- ✅ Create admin invites
+- ✅ Manage permissions
+- ✅ Security controls
+- ✅ Audit logs
+
+---
+
+## 🛠️ Quick Commands
 
 ```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main\backend"
+# From Project Root
+
+# Start Backend
 npm run backend
+
+# Start Frontend
+npm start
+
+# Stop all: Press Ctrl+C in each terminal
 ```
 
 ---
 
-## 10) Troubleshooting Guide
+## 🔗 Application URLs
 
-### Issue: `mvn` not recognized
+Once running:
 
-Use full Maven path temporarily:
-
-```powershell
-C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd -v
-```
-
-And run backend with full Maven path if needed:
-
-```powershell
-C:\Users\acer\tools\apache-maven-3.9.9\bin\mvn.cmd -f backend/api/pom.xml spring-boot:run
-```
-
-### Issue: Port 8080 already in use
-
-```powershell
-Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue |
-Select-Object -ExpandProperty OwningProcess -Unique |
-ForEach-Object { Stop-Process -Id $_ -Force }
-```
-
-Then start backend again.
-
-### Issue: Frontend running but login/upload fails
-
-Check these:
-1. Backend is running on `http://localhost:8080`
-2. Frontend API URL in `frontend/src/environments/environment.ts` is `http://localhost:8080/api`
-3. Browser network tab shows 200/401/500 details
-
-### Issue: Backend starts but database error appears
-
-Verify:
-1. MySQL service is running
-2. Username/password are correct
-3. DB URL points to localhost and proper port
-
-### Issue: Swagger not opening
-
-Confirm backend is running first, then open:
-- `http://localhost:8080/swagger-ui.html`
+| Service | URL |
+|---------|-----|
+| **Frontend** | `https://localhost:4200` |
+| **Backend API** | `http://localhost:8080` |
+| **API Docs** | `http://localhost:8080/swagger-ui.html` |
+| **Health Check** | `http://localhost:8080/actuator/health` |
 
 ---
 
-## 11) Interview / Demo Checklist
+## 🐛 Common Issues
 
-Before demo, confirm:
-- Backend started successfully
-- Frontend started successfully
-- Login works
-- Upload works
-- Status transitions visible
-- Record count and details page visible
-- Search/filter returns expected rows
+### "Port 8080 already in use"
+```powershell
+# Kill process on port 8080
+netstat -ano | findstr :8080
+taskkill /PID <PID> /F
+```
+
+### "Can't connect to MySQL"
+```powershell
+# Check MySQL is running
+mysql -h localhost -u root -p
+
+# Or start Docker container
+docker run --name mysql8 -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -d mysql:8
+```
+
+### "Login fails with credentials"
+- Verify `.env` has correct `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`
+- Restart backend after changing `.env`
+
+### "Frontend shows blank page"
+- Accept browser certificate warning (normal for localhost SSL)
+- Check browser console: F12 → Console tab
+
+**For more issues**: See `docs/GETTING_STARTED.md` → Troubleshooting section
 
 ---
 
-## 12) Git Push (Mohit Branch)
+## 📁 Project Structure
 
-If you are working on `Mohit` branch and want to push updates:
-
-```powershell
-cd "C:\Users\acer\Downloads\file-load-ui-Test-main"
-git branch --show-current
-git add .
-git commit -m "update readme and project changes"
-git push origin Mohit
 ```
-
-If push is rejected (non-fast-forward):
-
-```powershell
-git pull --rebase origin Mohit
-git push origin Mohit
+Test-FileManagementSystem/
+├── backend/                ← Spring Boot API (Java 21)
+│   ├── api/               ← Controllers, config, security
+│   ├── service/           ← Business logic
+│   ├── dao/               ← Database layer
+│   ├── model/             ← Entities & DTOs
+│   └── uploads/           ← Uploaded CSV files
+├── frontend/              ← Angular 17 app
+│   └── src/app/          ← Components, pages, services
+├── docs/                  ← Complete documentation
+├── csv/                   ← Sample CSV test files
+├── package.json           ← Root scripts
+└── README.md              ← This file
 ```
 
 ---
 
-## 13) Notes for New Developers
+## 📊 Tech Stack
 
-- Start with this README first
-- Do not run backend from parent POM with plain `spring-boot:run`
-- Use provided npm scripts (`npm run backend`, `npm run frontend`)
-- Keep backend and frontend terminals running together while testing end-to-end flow
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | Angular 17 + Angular Material |
+| **Backend** | Spring Boot 3 + Java 21 |
+| **Database** | MySQL 8+ |
+| **Authentication** | JWT + Google OAuth2 |
+| **Build Tools** | Maven + npm |
 
+---
 
+## 🔐 Security Features
 
+- Role-based access control (USER, ADMIN, SUPER_ADMIN)
+- JWT token authentication with expiration
+- Google OAuth2 integration
+- Password reset with token validation
+- Permission-scoped admin controls
+- CORS and CSRF protection
+- Blocked IP management
+- Method-level authorization
 
+---
+
+## 💡 Default Credentials
+
+After setup, login with:
+
+```
+Email: superadmin@gmail.com
+Password: admin@123
+```
+
+> Change these in `.env` to your own values
+
+---
+
+## 📖 Where to Go Next
+
+### 🎯 Choose Your Next Step
+
+**I want to...**
+- ✅ Upload a CSV file → Just click "Upload File" button
+- ✅ Create an admin user → Go to Admin → Admin Invitations
+- ✅ Understand the APIs → See `docs/backend/apis.md`
+- ✅ Configure production → See `docs/GETTING_STARTED.md`
+- ✅ Understand security → See `docs/security/README.md`
+
+### 📚 Full Documentation
+
+**Everything is documented in `docs/GETTING_STARTED.md`:**
+- ✅ Complete setup guide
+- ✅ Environment configuration
+- ✅ All commands & URLs
+- ✅ Troubleshooting (20+ issues)
+- ✅ Database management
+- ✅ Production deployment
+
+---
+
+## 🎯 First-Time Checklist
+
+- [ ] Install Java 21, Node.js, MySQL
+- [ ] Create `.env` file in `backend/api/`
+- [ ] Start MySQL
+- [ ] Run `npm run backend` (Terminal 1)
+- [ ] Run `npm start` (Terminal 2)
+- [ ] Open `https://localhost:4200`
+- [ ] Login with super-admin credentials
+- [ ] Upload a test CSV file
+- [ ] Try admin features
+- [ ] Read `docs/GETTING_STARTED.md` for details
+
+---
+
+## 🚀 What Can You Do
+
+### As Regular User
+- Upload CSV files
+- View file status (PENDING → PROCESSING → SUCCESS/FAILED)
+- Download files
+- Delete your files
+- Edit profile
+
+### As Admin
+- Manage users (block/unblock)
+- View user files
+- Delete all files of a user
+- Different permission scopes available
+
+### As Super-Admin
+- Create admin invites
+- Manage admin permissions
+- View audit logs
+- Full system control
+
+---
+
+## 📞 Need Help?
+
+1. **First Time Setup** → `docs/GETTING_STARTED.md` (Quick Start section)
+2. **Commands & URLs** → `docs/GETTING_STARTED.md` (Quick Reference section)
+3. **Configuration** → `docs/GETTING_STARTED.md` (Environment Setup section)
+4. **Troubleshooting** → `docs/GETTING_STARTED.md` (Troubleshooting section)
+5. **API Reference** → `docs/backend/apis.md`
+6. **All Docs Hub** → `docs/README.md`
+
+---
+
+## 🔍 Key Files You'll Need
+
+| File | Purpose |
+|------|---------|
+| `.env` | Configuration (create in `backend/api/`) |
+| `backend/api-run.log` | Backend logs if errors occur |
+| `docs/GETTING_STARTED.md` | Complete beginner guide |
+| `docs/README.md` | Documentation navigation hub |
+
+---
+
+## ✨ Features Highlights
+
+### File Processing
+- Upload CSV files (max 20MB)
+- Automatic async processing
+- Real-time status updates
+- Error tracking
+
+### User Management
+- User registration
+- Email-based password reset
+- Profile image upload
+- User blocking/unblocking
+
+### Admin Controls
+- Scope-based permissions
+- Invite-based admin creation
+- User file management
+- System audit logs
+
+---
+
+## 🎓 Learning Resources
+
+- [Java 21 Documentation](https://www.oracle.com/java/technologies/javase/21-relnote.html)
+- [Spring Boot Guide](https://spring.io/projects/spring-boot)
+- [Angular Documentation](https://angular.io/docs)
+- [MySQL Guide](https://dev.mysql.com/doc/)
+
+---
+
+## 📝 Notes
+
+- Browser might warn about self-signed certificate on localhost - this is normal, click "Advanced" and proceed
+- Database auto-creates on first startup
+- Files are stored in `backend/uploads/` directory
+- MySQL auto-increment continues after file deletion (this is normal)
+
+---
+
+## 💬 Support & Issues
+
+- Check `docs/GETTING_STARTED.md` for troubleshooting
+- Review backend logs: `backend/api-run.log`
+- Check browser console: F12 key
+- Read API documentation: `docs/backend/apis.md`
+
+---
+
+**Version**: 1.0.0  
+**Last Updated**: April 2026  
+**Status**: Production Ready  
+**License**: MIT
+
+---
+
+## 👉 Next Steps
+
+1. **Follow the Quick Setup above** (5 minutes)
+2. **Open `docs/GETTING_STARTED.md`** for complete guide
+3. **Start building!** 🚀
+
+**Questions?** Everything is documented in `docs/` folder!

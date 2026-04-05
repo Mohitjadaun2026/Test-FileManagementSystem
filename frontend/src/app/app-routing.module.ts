@@ -3,30 +3,43 @@ import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
-import { FileDetailsComponent } from './components/file-details/file-details.component'; // <-- import this
+import { FileDetailsComponent } from './components/file-details/file-details.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { OauthCallbackComponent } from './components/oauth-callback/oauth-callback.component';
+import { AdminInviteComponent } from './components/admin-invite/admin-invite.component';
+import { AdminUsersComponent } from './components/admin-users/admin-users.component';
 import { AuthGuard } from './guards/auth.guard';
+import { AdminScopeGuard } from './guards/admin-scope.guard';
+import { SuperAdminGuard } from './guards/super-admin.guard';
 
 const routes: Routes = [
-// Public landing page
-{ path: '', component: DashboardComponent },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
-// Auth pages (accessible only if NOT logged in)
-{ path: 'login', component: LoginComponent },
-{ path: 'register', component: RegisterComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'oauth/callback', component: OauthCallbackComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
 
-// Protected pages (files and upload require login)
-{ path: 'files', component: FileListComponent, canActivate: [AuthGuard] },
-{ path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] }, // <-- added route
-{ path: 'upload', component: FileUploadComponent, canActivate: [AuthGuard] },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'admin/users', component: AdminUsersComponent, canActivate: [AdminScopeGuard] },
+  { path: 'super-admin/admin-invites', component: AdminInviteComponent, canActivate: [SuperAdminGuard] },
+  { path: 'admin-invite', component: AdminInviteComponent },
 
-// Catch-all: redirect unknown routes to dashboard
-{ path: '**', redirectTo: '', pathMatch: 'full' }
+  { path: 'files', component: FileListComponent, canActivate: [AuthGuard] },
+  { path: 'files/:id', component: FileDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'upload', component: FileUploadComponent, canActivate: [AuthGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+
+  { path: '**', redirectTo: 'profile' }
 ];
 
 @NgModule({
-imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}

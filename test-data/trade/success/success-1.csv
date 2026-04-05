@@ -1,0 +1,5 @@
+tradeId,clientId,stockSymbol,quantity,price,tradeType
+TRD1001,CLT001,AAPL,10,189.50,BUY
+TRD1002,CLT002,MSFT,5,320.25,SELL
+TRD1003,CLT003,TSLA,2,210.75,BUY
+

@@ -11,7 +11,7 @@ body, html {
 .dashboard-container {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 110px 24px 48px;
+  padding: 80px 24px 48px;
   position: relative;
   isolation: isolate;
 }
@@ -314,9 +314,50 @@ body, html {
   font-size: 0.72rem;
 }
 
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.42);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+}
+
+.header-badge.live-pulse {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #dc2626;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  animation: livePulse 1.4s infinite;
+}
+
+.header-badge.live-pulse::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
 .header-badge.subtle {
   background: rgba(106, 27, 154, 0.10);
   color: #6a1b9a;
+}
+
+.live-note {
+  margin: -6px 0 12px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.error-note {
+  color: #b91c1c;
 }
 
 .metrics-grid {
@@ -671,5 +712,82 @@ body, html {
   }
   82% {
     transform: translateX(110%);
+  }
+}
+
+/* -------------------- Responsive Adjustments -------------------- */
+
+/* For Tablets and smaller desktops (under 1024px) */
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: 1fr; /* Stack the hero copy and metrics panel */
+  }
+
+  .dashboard-container {
+    padding: 60px 20px 40px;
+  }
+}
+
+/* For Mobile Devices (under 768px) */
+@media (max-width: 768px) {
+  .section-heading h2 {
+    font-size: 1.6rem; /* Smaller headings for mobile */
+  }
+
+  .hero-copy {
+    padding: 30px 24px;
+    border-radius: 20px;
+  }
+
+  .hero-copy h1 {
+    font-size: 2.2rem; /* Scale down the main title */
+  }
+
+  .hero-actions {
+    flex-direction: column; /* Stack buttons vertically */
+    width: 100%;
+  }
+
+  .hero-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr; /* Stack metrics into a single column */
+  }
+
+  .feature-grid,
+  .steps-grid,
+  .benefit-grid,
+  .action-grid {
+    grid-template-columns: 1fr; /* Ensure all grids stack on mobile */
+    gap: 16px;
+  }
+
+  .hero-highlights {
+    justify-content: center;
+  }
+
+  .highlight-item {
+    width: 100%; /* Make highlights full width */
+    justify-content: flex-start;
+  }
+}
+
+/* For very small screens (under 480px) */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding-top: 40px;
+  }
+
+  .hero-copy h1 {
+    font-size: 1.8rem;
+  }
+
+  .status-row {
+    flex-direction: column; /* Stack status rows if text is too long */
+    align-items: flex-start;
+    gap: 8px;
   }
 }

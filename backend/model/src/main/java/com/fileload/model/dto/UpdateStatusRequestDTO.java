@@ -2,27 +2,9 @@ package com.fileload.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class UpdateStatusRequestDTO {
-
-    @NotBlank
-    private String status;
-
-    private String comment;
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+public record UpdateStatusRequestDTO(
+        @NotBlank
+        String status,
+        String comment
+) {
 }
-
