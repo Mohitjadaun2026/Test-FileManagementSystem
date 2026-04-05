@@ -10,25 +10,25 @@ import org.springframework.stereotype.Component;
 public class FileLoadMapper {
 
     public FileLoadResponseDTO toDto(FileLoad entity) {
-        FileLoadResponseDTO dto = new FileLoadResponseDTO();
-        dto.setId(entity.getId());
-        dto.setFilename(entity.getFilename());
-        dto.setFileType(entity.getFileType());
-        dto.setFileSize(entity.getFileSize());
-        dto.setStatus(entity.getStatus().name());
-        dto.setRecordCount(entity.getRecordCount());
-        dto.setErrors(entity.getErrors());
-        dto.setUploadDate(entity.getLoadDate());
-        dto.setUploadedById(entity.getUploadedById());
-        dto.setUploadedBy(entity.getUploadedBy());
-        dto.setDescription(entity.getDescription());
-        dto.setTags(entity.getTags() == null || entity.getTags().isBlank()
-                ? Collections.emptyList()
-                : Arrays.stream(entity.getTags().split(","))
-                .map(String::trim)
-                .filter(tag -> !tag.isBlank())
-                .toList());
-        return dto;
+        return new FileLoadResponseDTO(
+                entity.getId(),
+                entity.getFilename(),
+                entity.getFileType(),
+                entity.getFileSize(),
+                entity.getStatus().name(),
+                entity.getRecordCount(),
+                entity.getErrors(),
+                entity.getLoadDate(),
+                entity.getUploadedById(),
+                entity.getUploadedBy(),
+                entity.getDescription(),
+                entity.getTags() == null || entity.getTags().isBlank()
+                        ? Collections.emptyList()
+                        : Arrays.stream(entity.getTags().split(","))
+                        .map(String::trim)
+                        .filter(tag -> !tag.isBlank())
+                        .toList()
+        );
     }
 }
 

@@ -83,8 +83,11 @@ public class AdminServiceImpl implements AdminService {
             throw new org.springframework.security.access.AccessDeniedException("SUPER_ADMIN can only be managed by SUPER_ADMIN");
         }
         user.setEnabled(enabled);
+        user.setDisabledByRole(enabled ? null : resolveBlockingRole(actor));
+        user.setTokenVersion(user.getTokenVersion() + 1);
         UserAccount saved = userAccountRepository.save(user);
-        audit("USER_ENABLED_UPDATED", "USER", userId.toString(), "enabled=" + enabled);
+        audit("USER_ENABLED_UPDATED", "USER", userId.toString(),
+                "enabled=" + enabled + (enabled ? "" : ",blockedBy=" + saved.getDisabledByRole()));
         return toUserSummary(saved);
     }
 
@@ -225,6 +228,16 @@ public class AdminServiceImpl implements AdminService {
             return null;
         }
         return userAccountRepository.findByEmail(authentication.getName()).orElse(null);
+    }
+
+    private UserRole resolveBlockingRole(UserAccount actor) {
+        if (actor == null) {
+            return UserRole.ADMIN;
+        }
+        if (actor.getRole() == UserRole.SUPER_ADMIN) {
+            return UserRole.SUPER_ADMIN;
+        }
+        return UserRole.ADMIN;
     }
 }
 

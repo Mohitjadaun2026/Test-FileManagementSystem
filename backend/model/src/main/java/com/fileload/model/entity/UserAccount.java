@@ -35,11 +35,18 @@ public class UserAccount {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private UserRole disabledByRole;
+
     @Column(name = "token_version", nullable = false)
     private int tokenVersion = 0;
 
     @Column(name = "admin_permissions", length = 2000)
     private String adminPermissions;
+
+    public UserAccount() {
+    }
 
     public Long getId() {
         return id;
@@ -113,6 +120,14 @@ public class UserAccount {
         this.enabled = enabled;
     }
 
+    public UserRole getDisabledByRole() {
+        return disabledByRole;
+    }
+
+    public void setDisabledByRole(UserRole disabledByRole) {
+        this.disabledByRole = disabledByRole;
+    }
+
     public int getTokenVersion() {
         return tokenVersion;
     }
@@ -128,4 +143,5 @@ public class UserAccount {
     public void setAdminPermissions(String adminPermissions) {
         this.adminPermissions = adminPermissions;
     }
+
 }

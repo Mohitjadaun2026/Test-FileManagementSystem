@@ -55,6 +55,7 @@ public class AdminController {
         this.securityControlService = securityControlService;
     }
 
+
     @GetMapping("/users")
     @PreAuthorize("@adminAuthorization.has(T(com.fileload.model.entity.AdminPermission).USER_ACCESS_CONTROL) || @adminAuthorization.has(T(com.fileload.model.entity.AdminPermission).USER_RECORDS_OVERVIEW) || @adminAuthorization.has(T(com.fileload.model.entity.AdminPermission).USER_FILES_DELETE_ALL)")
     @Operation(summary = "List users with admin visibility")
@@ -124,8 +125,8 @@ public class AdminController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateStatusRequestDTO request
     ) {
-        FileLoadResponseDTO response = fileLoadService.updateFileLoadStatus(id, request.getStatus(), request.getComment());
-        adminService.audit("FILE_STATUS_UPDATED", "FILE", id.toString(), "status=" + request.getStatus());
+        FileLoadResponseDTO response = fileLoadService.updateFileLoadStatus(id, request.status(), request.comment());
+        adminService.audit("FILE_STATUS_UPDATED", "FILE", id.toString(), "status=" + request.status());
         return ResponseEntity.ok(response);
     }
 

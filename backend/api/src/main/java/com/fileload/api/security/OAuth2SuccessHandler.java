@@ -6,8 +6,9 @@ import com.fileload.dao.repository.UserAccountRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -21,14 +22,18 @@ import java.util.Map;
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
+
     @Value("${app.frontend-base-url:https://localhost:4200}")
     private String frontendBaseUrl;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final UserAccountRepository userRepository;
 
-    @Autowired
-    private UserAccountRepository userRepository;
+    public OAuth2SuccessHandler(JwtUtil jwtUtil, UserAccountRepository userRepository) {
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public void onAuthenticationSuccess(
@@ -53,12 +58,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             UserAccount user = userRepository.findByEmail(email)
                     .orElseGet(() -> {
                         UserAccount newUser = new UserAccount();
-                        newUser.setEmail(email);
-                        newUser.setUsername(name != null && !name.isEmpty() ? name : email.split("@")[0]);
                         newUser.setPassword(""); // OAuth2 users don't have password
+                        newUser.setUsername(name != null && !name.isEmpty() ? name : email.split("@")[0]);
+                        newUser.setPassword("");
                         newUser.setRole(UserRole.USER);
                         return userRepository.save(newUser);
                     });
+
+            if (!user.isEnabled()) {
+                sendErrorRedirect(response, blockedMessage(user));
+                return;
+            }
 
             // Generate JWT token
             String token = jwtUtil.generateToken(user.getEmail(), user.getTokenVersion(), user.getRole().name());
@@ -75,7 +85,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .toUriString();
             response.sendRedirect(redirectUrl);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("OAuth authentication failed", e);
             sendErrorRedirect(response, "OAuth authentication failed: " + e.getMessage());
         }
     }
@@ -113,6 +123,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             base = base.substring(0, base.length() - 1);
         }
         return base + path;
+    }
+
+    private String blockedMessage(UserAccount user) {
+        return user.getDisabledByRole() == UserRole.SUPER_ADMIN
+                ? "You are blocked by superadmin"
+                : "You are blocked by admin";
     }
 }
 

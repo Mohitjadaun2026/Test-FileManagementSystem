@@ -3,7 +3,8 @@ package com.fileload.api.config;
 import com.fileload.api.security.IpBlockFilter;
 import com.fileload.api.security.JwtAuthenticationFilter;
 import com.fileload.api.security.OAuth2SuccessHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fileload.api.security.RestAccessDeniedHandler;
+import com.fileload.api.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,34 +19,40 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import org.springframework.http.HttpStatus;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final IpBlockFilter ipBlockFilter;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final UserDetailsService userDetailsService;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
-    @Autowired
-    private IpBlockFilter ipBlockFilter;
-
-    @Autowired
-    private OAuth2SuccessHandler oAuth2SuccessHandler;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          IpBlockFilter ipBlockFilter,
+                          OAuth2SuccessHandler oAuth2SuccessHandler,
+                          UserDetailsService userDetailsService,
+                          RestAuthenticationEntryPoint authenticationEntryPoint,
+                          RestAccessDeniedHandler accessDeniedHandler) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.ipBlockFilter = ipBlockFilter;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+        this.userDetailsService = userDetailsService;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -71,10 +78,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        .defaultAuthenticationEntryPointFor(
-                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                                new AntPathRequestMatcher("/api/**")
-                        )
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authenticationProvider(authenticationProvider())
                 .oauth2Login(oauth2 -> oauth2

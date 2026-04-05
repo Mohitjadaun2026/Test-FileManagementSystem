@@ -51,6 +51,9 @@ public class FileLoad {
     @Column(length = 255)
     private String uploadedBy;
 
+    public FileLoad() {
+    }
+
     public Long getId() {
         return id;
     }
@@ -131,13 +134,13 @@ public class FileLoad {
         this.tags = tags;
     }
 
-//    public Boolean getArchived() {
-//        return archived;
-//    }
+    public Boolean getArchived() {
+        return archived;
+    }
 
-//    public void setArchived(Boolean archived) {
-//        this.archived = archived;
-//    }
+    public void setArchived(Boolean archived) {
+        this.archived = archived;
+    }
 
     public String getStoragePath() {
         return storagePath;

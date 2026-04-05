@@ -22,6 +22,11 @@ public class SuperAdminBootstrap implements ApplicationRunner {
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public SuperAdminBootstrap(UserAccountRepository userAccountRepository, PasswordEncoder passwordEncoder) {
+        this.userAccountRepository = userAccountRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Value("${app.super-admin.email:superadmin@filemanagement.local}")
     private String email;
 
@@ -31,10 +36,6 @@ public class SuperAdminBootstrap implements ApplicationRunner {
     @Value("${app.super-admin.password:}")
     private String password;
 
-    public SuperAdminBootstrap(UserAccountRepository userAccountRepository, PasswordEncoder passwordEncoder) {
-        this.userAccountRepository = userAccountRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public void run(ApplicationArguments args) {

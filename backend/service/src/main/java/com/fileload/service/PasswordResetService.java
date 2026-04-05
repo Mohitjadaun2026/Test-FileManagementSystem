@@ -6,7 +6,6 @@ import com.fileload.model.entity.PasswordResetToken;
 import com.fileload.model.entity.UserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,35 +22,33 @@ public class PasswordResetService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetService.class);
 
-    @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private UserAccountRepository userAccountRepository;
-
-    @Autowired
-    private JavaMailSender javaMailSender;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Value("${app.frontend-base-url:https://localhost:4200}")
-    private String frontendBaseUrl;
-
-    @Value("${mail.from:noreply@filemanagement.com}")
-    private String mailFrom;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final UserAccountRepository userAccountRepository;
+    private final JavaMailSender javaMailSender;
+    private final PasswordEncoder passwordEncoder;
+    private final String frontendBaseUrl;
+    private final String mailFrom;
 
     private static final int TOKEN_EXPIRY_HOURS = 24;
 
+    public PasswordResetService(PasswordResetTokenRepository passwordResetTokenRepository,
+                                UserAccountRepository userAccountRepository,
+                                JavaMailSender javaMailSender,
+                                PasswordEncoder passwordEncoder,
+                                @Value("${app.frontend-base-url:https://localhost:4200}") String frontendBaseUrl,
+                                @Value("${mail.from:noreply@filemanagement.com}") String mailFrom) {
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.userAccountRepository = userAccountRepository;
+        this.javaMailSender = javaMailSender;
+        this.passwordEncoder = passwordEncoder;
+        this.frontendBaseUrl = frontendBaseUrl;
+        this.mailFrom = mailFrom;
+    }
+
     @Transactional
-    public void requestPasswordReset(String email) throws Exception {
-        Optional<UserAccount> userOptional = userAccountRepository.findByEmail(email);
-
-        if (userOptional.isEmpty()) {
-            throw new Exception("User not found with email: " + email);
-        }
-
-        UserAccount user = userOptional.get();
+    public void requestPasswordReset(String email) {
+        UserAccount user = userAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
         // Delete any existing unused tokens for this user
         passwordResetTokenRepository.deleteByUserId(user.getId());
@@ -80,25 +77,16 @@ public class PasswordResetService {
     }
 
     @Transactional
-    public void resetPassword(String token, String newPassword) throws Exception {
-        Optional<PasswordResetToken> resetTokenOptional = passwordResetTokenRepository.findByToken(token);
-
-        if (resetTokenOptional.isEmpty()) {
-            throw new Exception("Invalid reset token");
-        }
-
-        PasswordResetToken resetToken = resetTokenOptional.get();
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid reset token"));
 
         if (!resetToken.isValid()) {
-            throw new Exception("Reset token has expired or already been used");
+            throw new IllegalStateException("Reset token has expired or already been used");
         }
 
-        Optional<UserAccount> userOptional = userAccountRepository.findById(resetToken.getUserId());
-        if (userOptional.isEmpty()) {
-            throw new Exception("User not found");
-        }
-
-        UserAccount user = userOptional.get();
+        UserAccount user = userAccountRepository.findById(resetToken.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // Update password
         user.setPassword(passwordEncoder.encode(newPassword));

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loading = false;
   oauthLoading = false;
 
@@ -27,6 +27,13 @@ export class LoginComponent {
     private snack: MatSnackBar
   ) {}
 
+  ngOnInit(): void {
+    const error = this.route.snapshot.queryParamMap.get('error');
+    if (error) {
+      this.snack.open(this.normalizeAuthMessage(error), 'Dismiss', { duration: 3500 });
+    }
+  }
+
   submit() {
     if (this.form.invalid) return;
     this.loading = true;
@@ -40,7 +47,7 @@ export class LoginComponent {
       },
       error: (err) => {
         console.error('[LoginComponent] Login failed for:', this.form.value.login, err);
-        this.snack.open(err?.error?.message ?? 'Login failed', 'Dismiss', { duration: 3500 });
+        this.snack.open(this.normalizeAuthMessage(err?.error?.message), 'Dismiss', { duration: 3500 });
         this.loading = false;
       }
     });
@@ -49,5 +56,14 @@ export class LoginComponent {
   loginWithGoogle() {
     this.oauthLoading = true;
     window.location.href = `${environment.apiBaseUrl}/auth/oauth2/google`;
+  }
+
+  private normalizeAuthMessage(message?: string | null): string {
+    const normalized = (message || '').trim().toLowerCase();
+    if (normalized.includes('blocked')) {
+      return 'User is blocked';
+    }
+
+    return message?.trim() || 'Login failed';
   }
 }

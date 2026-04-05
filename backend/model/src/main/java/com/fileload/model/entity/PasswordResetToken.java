@@ -2,9 +2,15 @@ package com.fileload.model.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "password_reset_tokens")
+@Getter
+@Setter
+@NoArgsConstructor
 public class PasswordResetToken {
 
     @Id
@@ -29,9 +35,6 @@ public class PasswordResetToken {
     @Column(name = "used_at")
     private LocalDateTime usedAt;
 
-    public PasswordResetToken() {
-    }
-
     public PasswordResetToken(String token, Long userId, LocalDateTime expiresAt) {
         this.token = token;
         this.userId = userId;
@@ -40,61 +43,10 @@ public class PasswordResetToken {
         this.isUsed = false;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public boolean isUsed() {
         return isUsed;
     }
 
-    public void setUsed(boolean used) {
-        isUsed = used;
-    }
-
-    public LocalDateTime getUsedAt() {
-        return usedAt;
-    }
-
-    public void setUsedAt(LocalDateTime usedAt) {
-        this.usedAt = usedAt;
-    }
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
