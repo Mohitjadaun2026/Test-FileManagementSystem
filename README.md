@@ -21,21 +21,57 @@ Make sure you have these installed:
 Create `.env` file in `backend/api/` directory with:
 
 ```dotenv
+# ============================================================================
+# Database Configuration
+# ============================================================================
 DB_URL=jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 DB_USERNAME=root
-DB_PASSWORD=root
+DB_PASSWORD=xxxxxx
+
+# ============================================================================
+# Google OAuth2 Configuration
+# ============================================================================
 GOOGLE_CLIENT_ID=xxxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=xxxxxx
-GOOGLE_REDIRECT_URI=http://localhost:8080/login/oauth2/code/google
-JWT_SECRET=your_strong_secret_key_minimum_32_characters_long
+GOOGLE_REDIRECT_URI=https://localhost:8080/login/oauth2/code/google
+
+# ============================================================================
+# JWT Configuration
+# ============================================================================
+JWT_SECRET=xxxxxx_minimum_32_characters_long
 JWT_EXPIRATION=86400000
-SERVER_PORT=8080
-FRONTEND_BASE_URL=https://localhost:4200
+
+# ============================================================================
+# Super-Admin Bootstrap Configuration
+# ============================================================================
+# These credentials are used to create the super-admin account on FIRST startup
+# After first startup, these are ignored (account is already in database)
 SUPER_ADMIN_EMAIL=superadmin@gmail.com
-SUPER_ADMIN_PASSWORD=admin@123
+SUPER_ADMIN_USERNAME=superadmin
+SUPER_ADMIN_PASSWORD=xxxxxx
+
+# ============================================================================
+# Server Configuration
+# ============================================================================
+SERVER_PORT=8080
+SERVER_SSL_ENABLED=true
+SERVER_SSL_KEY_STORE=classpath:keystore-local.pfx
+SERVER_SSL_KEY_STORE_PASSWORD=xxxxxx
+SERVER_SSL_KEY_STORE_TYPE=PKCS12
+FRONTEND_BASE_URL=https://localhost:4200
+
+# ============================================================================
+# Email Configuration (Gmail SMTP)
+# ============================================================================
+# For Gmail: Generate an App Password at https://myaccount.google.com/apppasswords
+MAIL_SMTP_HOST=smtp.gmail.com
+MAIL_SMTP_PORT=587
+MAIL_SMTP_USERNAME=xxxxxx@gmail.com
+MAIL_SMTP_PASSWORD=xxxxxx
+MAIL_FROM=xxxxxx@gmail.com
 ```
 
-> **Replace `xxxxxx`** with your actual Google OAuth2 credentials. See `docs/GETTING_STARTED.md` for details.
+> **Replace all `xxxxxx` values** with your actual credentials. See `docs/GETTING_STARTED.md` for complete details on each variable.
 
 **Step 2: Start MySQL**
 
