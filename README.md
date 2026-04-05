@@ -16,62 +16,39 @@ Make sure you have these installed:
 
 ### Quick Setup (Copy & Paste)
 
-**Step 1: Create Environment File**
+**Step 1: Configure Environment Variables**
 
-Create `.env` file in `backend/api/` directory with:
+Update `.env` file in `backend/api/` directory:
 
-```dotenv
-# ============================================================================
-# Database Configuration
-# ============================================================================
-DB_URL=jdbc:mysql://localhost:3306/file_load_mgmt?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-DB_USERNAME=root
-DB_PASSWORD=xxxxxx
-
-# ============================================================================
-# Google OAuth2 Configuration
-# ============================================================================
-GOOGLE_CLIENT_ID=xxxxxx.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=xxxxxx
-GOOGLE_REDIRECT_URI=https://localhost:8080/login/oauth2/code/google
-
-# ============================================================================
-# JWT Configuration
-# ============================================================================
-JWT_SECRET=xxxxxx_minimum_32_characters_long
-JWT_EXPIRATION=86400000
-
-# ============================================================================
-# Super-Admin Bootstrap Configuration
-# ============================================================================
-# These credentials are used to create the super-admin account on FIRST startup
-# After first startup, these are ignored (account is already in database)
-SUPER_ADMIN_EMAIL=superadmin@gmail.com
-SUPER_ADMIN_USERNAME=superadmin
-SUPER_ADMIN_PASSWORD=xxxxxx
-
-# ============================================================================
-# Server Configuration
-# ============================================================================
-SERVER_PORT=8080
-SERVER_SSL_ENABLED=true
-SERVER_SSL_KEY_STORE=classpath:keystore-local.pfx
-SERVER_SSL_KEY_STORE_PASSWORD=xxxxxx
-SERVER_SSL_KEY_STORE_TYPE=PKCS12
-FRONTEND_BASE_URL=https://localhost:4200
-
-# ============================================================================
-# Email Configuration (Gmail SMTP)
-# ============================================================================
-# For Gmail: Generate an App Password at https://myaccount.google.com/apppasswords
-MAIL_SMTP_HOST=smtp.gmail.com
-MAIL_SMTP_PORT=587
-MAIL_SMTP_USERNAME=xxxxxx@gmail.com
-MAIL_SMTP_PASSWORD=xxxxxx
-MAIL_FROM=xxxxxx@gmail.com
+```powershell
+cd backend/api
+# Edit .env file and replace all xxxxxx with your actual credentials
+# See below for where to get each credential
 ```
 
-> **Replace all `xxxxxx` values** with your actual credentials. See `docs/GETTING_STARTED.md` for complete details on each variable.
+**Where to Get Credentials:**
+
+1. **Database Password** (DB_PASSWORD)
+   - Your MySQL password
+
+2. **Google OAuth2 Credentials** (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+   - Get from: https://console.cloud.google.com/
+   - Steps: Create project → Enable Google+ API → Create OAuth 2.0 Web credentials
+
+3. **JWT Secret** (JWT_SECRET)
+   - Use any strong random string (16+ characters)
+
+4. **Super-Admin Password** (SUPER_ADMIN_PASSWORD)
+   - Set your desired password (created on first startup)
+
+5. **Email/Gmail Credentials** (MAIL_SMTP_USERNAME, MAIL_SMTP_PASSWORD)
+   - Gmail username: Your Gmail email
+   - Gmail app password: Generate at https://myaccount.google.com/apppasswords
+
+6. **SSL Keystore Password** (SERVER_SSL_KEY_STORE_PASSWORD)
+   - Your keystore file password
+
+> **See `.env` file or `docs/GETTING_STARTED.md` for complete variable details and setup instructions**
 
 **Step 2: Start MySQL**
 
