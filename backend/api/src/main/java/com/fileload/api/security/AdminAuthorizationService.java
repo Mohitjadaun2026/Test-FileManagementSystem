@@ -18,6 +18,7 @@ public class AdminAuthorizationService {
         this.userAccountRepository = userAccountRepository;
     }
 
+
     public boolean has(AdminPermission permission) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {

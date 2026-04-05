@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -34,8 +36,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/file-loads")
@@ -61,11 +61,9 @@ public class FileLoadController {
         boolean hasDescription = description != null && !description.isBlank();
         boolean hasTags = tags != null && !tags.isEmpty();
 
-        if (created.getId() != null && (hasDescription || hasTags)) {
-            UpdateMetadataRequestDTO metadata = new UpdateMetadataRequestDTO();
-            metadata.setDescription(hasDescription ? description.trim() : null);
-            metadata.setTags(tags);
-            created = fileLoadService.updateMetadata(created.getId(), metadata);
+        if (created.id() != null && (hasDescription || hasTags)) {
+            UpdateMetadataRequestDTO metadata = new UpdateMetadataRequestDTO(hasDescription ? description.trim() : null, tags);
+            created = fileLoadService.updateMetadata(created.id(), metadata);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -135,18 +133,19 @@ public class FileLoadController {
                                                   Integer page,
                                                   Integer size,
                                                   String sort) {
-        SearchCriteriaDTO criteria = new SearchCriteriaDTO();
-        criteria.setFileId(fileId);
-        criteria.setFilename(filename);
-        criteria.setStatus(status);
-        criteria.setStartDate(parseDateTime(startDate));
-        criteria.setEndDate(parseDateTime(endDate));
-        criteria.setRecordCountMin(recordCountMin);
-        criteria.setRecordCountMax(recordCountMax);
-        criteria.setPage(page);
-        criteria.setSize(size);
-        criteria.setSort(sort);
-        return criteria;
+        return new SearchCriteriaDTO(
+                fileId,
+                filename,
+                null,
+                status,
+                parseDateTime(startDate),
+                parseDateTime(endDate),
+                recordCountMin,
+                recordCountMax,
+                page,
+                size,
+                sort
+        );
     }
 
     private LocalDateTime parseDateTime(String value) {
@@ -185,7 +184,7 @@ public class FileLoadController {
         // Debug: log current user's authorities
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         logger.info("[DEBUG] updateStatus called by user: {} with authorities: {}", auth.getName(), auth.getAuthorities());
-        return ResponseEntity.ok(fileLoadService.updateFileLoadStatus(id, request.getStatus(), request.getComment()));
+        return ResponseEntity.ok(fileLoadService.updateFileLoadStatus(id, request.status(), request.comment()));
     }
     @PatchMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
@@ -219,7 +218,7 @@ public class FileLoadController {
         byte[] data = fileLoadService.downloadFile(id);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentDisposition(ContentDisposition.attachment().filename(dto.getFilename()).build());
+        headers.setContentDisposition(ContentDisposition.attachment().filename(dto.filename()).build());
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }

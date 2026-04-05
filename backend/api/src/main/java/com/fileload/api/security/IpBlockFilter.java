@@ -18,6 +18,7 @@ public class IpBlockFilter extends OncePerRequestFilter {
         this.securityControlService = securityControlService;
     }
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

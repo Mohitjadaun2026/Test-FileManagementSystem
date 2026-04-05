@@ -19,29 +19,29 @@ public final class FileLoadSpecifications {
 
             predicates.add(cb.isFalse(root.get("archived")));
 
-            if (criteria.getFileId() != null) {
-                predicates.add(cb.equal(root.get("id"), criteria.getFileId()));
+            if (criteria.fileId() != null) {
+                predicates.add(cb.equal(root.get("id"), criteria.fileId()));
             }
-            if (criteria.getFilename() != null && !criteria.getFilename().isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("filename")), "%" + criteria.getFilename().toLowerCase() + "%"));
+            if (criteria.filename() != null && !criteria.filename().isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("filename")), "%" + criteria.filename().toLowerCase() + "%"));
             }
-            if (criteria.getUploadedById() != null) {
-                predicates.add(cb.equal(root.get("uploadedById"), criteria.getUploadedById()));
+            if (criteria.uploadedById() != null) {
+                predicates.add(cb.equal(root.get("uploadedById"), criteria.uploadedById()));
             }
-            if (criteria.getStatus() != null && !criteria.getStatus().isBlank()) {
-                predicates.add(cb.equal(root.get("status"), FileStatus.valueOf(criteria.getStatus().toUpperCase())));
+            if (criteria.status() != null && !criteria.status().isBlank()) {
+                predicates.add(cb.equal(root.get("status"), FileStatus.valueOf(criteria.status().toUpperCase())));
             }
-            if (criteria.getStartDate() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("loadDate"), criteria.getStartDate()));
+            if (criteria.startDate() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("loadDate"), criteria.startDate()));
             }
-            if (criteria.getEndDate() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("loadDate"), criteria.getEndDate()));
+            if (criteria.endDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("loadDate"), criteria.endDate()));
             }
-            if (criteria.getRecordCountMin() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("recordCount"), criteria.getRecordCountMin()));
+            if (criteria.recordCountMin() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("recordCount"), criteria.recordCountMin()));
             }
-            if (criteria.getRecordCountMax() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("recordCount"), criteria.getRecordCountMax()));
+            if (criteria.recordCountMax() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("recordCount"), criteria.recordCountMax()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

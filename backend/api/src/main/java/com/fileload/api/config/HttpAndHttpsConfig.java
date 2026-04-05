@@ -10,15 +10,18 @@ import org.apache.catalina.connector.Connector;
 @Configuration
 public class HttpAndHttpsConfig {
 
-    @Value("${server.port:8080}")
-    private int httpsPort;
+    private final int httpPort;
+
+    public HttpAndHttpsConfig(@Value("${server.http.port:8082}") int httpPort) {
+        this.httpPort = httpPort;
+    }
 
     @Bean
     public WebServerFactoryCustomizer<TomcatServletWebServerFactory> servletContainerCustomizer() {
         return factory -> {
             Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
             connector.setScheme("http");
-            connector.setPort(8082); // HTTP port
+            connector.setPort(httpPort);
             connector.setSecure(false);
             factory.addAdditionalTomcatConnectors(connector);
         };

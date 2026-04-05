@@ -182,12 +182,11 @@ public class FileLoadServiceImpl implements FileLoadService {
     public Page<FileLoadResponseDTO> searchMyFileLoads(SearchCriteriaDTO criteria) {
         Long currentUserId = resolveCurrentUserId();
         if (currentUserId == null) {
-            Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize());
+            Pageable pageable = PageRequest.of(criteria.page(), criteria.size());
             return new PageImpl<>(java.util.List.of(), pageable, 0);
         }
 
-        criteria.setUploadedById(currentUserId);
-        return searchInternal(criteria);
+        return searchInternal(criteria.withUploadedById(currentUserId));
     }
 
     @Override
@@ -208,9 +207,9 @@ public class FileLoadServiceImpl implements FileLoadService {
         if (!canCurrentUserAccess(entity)) {
             throw new AccessDeniedException("You do not have permission to update this file.");
         }
-        entity.setDescription(request.getDescription());
-        if (request.getTags() != null) {
-            String tagCsv = request.getTags().stream()
+        entity.setDescription(request.description());
+        if (request.tags() != null) {
+            String tagCsv = request.tags().stream()
                     .filter(tag -> tag != null && !tag.isBlank())
                     .map(String::trim)
                     .collect(Collectors.joining(","));
@@ -308,16 +307,16 @@ public class FileLoadServiceImpl implements FileLoadService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
 
-        DashboardOverviewDTO overview = new DashboardOverviewDTO();
-        overview.setTotalUploads(totalUploads);
-        overview.setInProcessing(processingCount);
-        overview.setPendingCount(pendingCount);
-        overview.setProcessingCount(processingCount);
-        overview.setSuccessCount(successCount);
-        overview.setExceptionsToday(fileLoadRepository.countByStatusAndLoadDateBetween(FileStatus.FAILED, startOfDay, now));
-        overview.setSuccessRate(totalUploads == 0 ? 0.0 : (successCount * 100.0) / totalUploads);
-        overview.setLastUpdated(now);
-        return overview;
+        return new DashboardOverviewDTO(
+                totalUploads,
+                processingCount,
+                totalUploads == 0 ? 0.0 : (successCount * 100.0) / totalUploads,
+                fileLoadRepository.countByStatusAndLoadDateBetween(FileStatus.FAILED, startOfDay, now),
+                pendingCount,
+                processingCount,
+                successCount,
+                now
+        );
     }
 
     private FileLoad fetchById(Long id) {
@@ -338,13 +337,13 @@ public class FileLoadServiceImpl implements FileLoadService {
     }
 
     private Page<FileLoadResponseDTO> searchInternal(SearchCriteriaDTO criteria) {
-        String[] sortTokens = criteria.getSort().split(",");
+        String[] sortTokens = criteria.sort().split(",");
         String sortField = sortTokens[0];
         Sort.Direction direction = sortTokens.length > 1 && "asc".equalsIgnoreCase(sortTokens[1])
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
 
-        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), Sort.by(direction, mapSort(sortField)));
+        Pageable pageable = PageRequest.of(criteria.page(), criteria.size(), Sort.by(direction, mapSort(sortField)));
         return fileLoadRepository.findAll(FileLoadSpecifications.withCriteria(criteria), pageable)
                 .map(fileLoadMapper::toDto);
     }

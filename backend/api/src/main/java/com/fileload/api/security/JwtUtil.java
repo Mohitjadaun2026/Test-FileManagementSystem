@@ -6,20 +6,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
 
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final String secret;
+    private final long expirationMs;
 
-    @Value("${jwt.expiration:86400000}")
-    private long expirationMs;
+    public JwtUtil(@Value("${jwt.secret}") String secret,
+                   @Value("${jwt.expiration:86400000}") long expirationMs) {
+        this.secret = secret;
+        this.expirationMs = expirationMs;
+    }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String username) {
@@ -27,14 +33,17 @@ public class JwtUtil {
     }
 
     public String generateToken(String username, int tokenVersion, String role) {
+        Instant issuedAt = Instant.now();
+        Instant expiresAt = issuedAt.plus(expirationMs, ChronoUnit.MILLIS);
+
         return Jwts.builder()
                 .subject(username)
                 .claims(Map.of(
                         "tokenVersion", tokenVersion,
                         "role", role
                 ))
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiresAt))
                 .signWith(getSigningKey())
                 .compact();
     }

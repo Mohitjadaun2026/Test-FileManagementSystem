@@ -32,6 +32,7 @@ public class SuperAdminController {
         this.superAdminService = superAdminService;
     }
 
+
     @PostMapping("/admin-invites")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Send admin invitation with scoped permissions")

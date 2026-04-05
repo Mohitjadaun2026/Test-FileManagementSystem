@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,20 +54,20 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register user")
     public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
-        logger.info("Register API called for email: {} and username: {}", request.getEmail(), request.getUsername());
+        logger.info("Register API called for email: {} and username: {}", request.email(), request.username());
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUsername(request.username())) {
             throw new IllegalArgumentException("Username already exists");
         }
 
         UserAccount user = new UserAccount();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.USER);
 
         user = userRepository.save(user);
@@ -80,7 +81,7 @@ public class AuthController {
     @Operation(summary = "Login user")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
 
-        String login = request.getLogin().trim();
+        String login = request.login().trim();
 
         UserAccount user = userRepository.findByEmailOrUsername(login, login)
                 .orElse(null);
@@ -89,10 +90,16 @@ public class AuthController {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
+        if (!user.isEnabled()) {
+            throw new IllegalStateException("User is blocked");
+        }
+
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(login, request.getPassword())
+                    new UsernamePasswordAuthenticationToken(login, request.password())
             );
+        } catch (DisabledException ex) {
+            throw new IllegalStateException(ex.getMessage());
         } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid credentials");
         }
@@ -108,7 +115,7 @@ public class AuthController {
             @Valid @RequestBody ForgotPasswordRequestDTO request) {
 
         try {
-            passwordResetService.requestPasswordReset(request.getEmail());
+            passwordResetService.requestPasswordReset(request.email());
 
             return ResponseEntity.ok(
                     new ResetPasswordResponseDTO(true, "Password reset link sent to your email")
@@ -143,8 +150,8 @@ public class AuthController {
 
         try {
             passwordResetService.resetPassword(
-                    request.getToken(),
-                    request.getNewPassword()
+                    request.token(),
+                    request.newPassword()
             );
 
             return ResponseEntity.ok(
@@ -170,7 +177,7 @@ public class AuthController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("userId") Long userId,
             Authentication authentication
-    ) throws Exception {
+    ) throws IOException {
 
         UserAccount actingUser = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
@@ -207,14 +214,14 @@ public class AuthController {
 
     // ---------------- HELPER ----------------
     private AuthResponseDTO toAuthResponse(UserAccount user, String token) {
-        AuthResponseDTO dto = new AuthResponseDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole().name());
-        dto.setToken(token);
-        dto.setProfileImage(user.getProfileImage());
-        dto.setAdminPermissions(user.getAdminPermissions());
-        return dto;
+        return new AuthResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name(),
+                token,
+                user.getProfileImage(),
+                user.getAdminPermissions()
+        );
     }
 }
