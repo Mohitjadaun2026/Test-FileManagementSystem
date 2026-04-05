@@ -21,7 +21,6 @@ Detailed inspection and maintenance view for one file load.
 
 - download file
 - delete file
-- open status update dialog
 - inline metadata save (description/tags)
 
 ## Edit Metadata Flow
@@ -31,15 +30,16 @@ Detailed inspection and maintenance view for one file load.
 3. Calls `FileLoadService.updateMetadata(id, body)`.
 4. Updates page model on success.
 
-## Status Update Integration
-
-- Uses reusable `app-status-update` component inline.
-- Also supports modal open for status update.
-
 ## Error Handling
 
 - load failure -> snackbar + empty state
 - save/download/delete errors -> snackbar
+
+## Status Display
+
+- File processing status is displayed as a read-only badge
+- Status shows current state: PENDING, PROCESSING, SUCCESS, or FAILED
+- Error messages are displayed if processing failed
 
 ## Status Style Mapping
 
