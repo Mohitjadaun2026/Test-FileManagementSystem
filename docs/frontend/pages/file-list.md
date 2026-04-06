@@ -15,7 +15,7 @@ Central workspace for listing, filtering, selecting, and acting on file loads.
 - server-side pagination
 - sorting
 - advanced filtering through child component (`app-file-search`)
-- row actions: view, download, update status, delete
+- row actions: view, download, delete
 - multi-select with bulk delete selected
 - delete-all-matching current filter set
 - periodic refresh polling every second

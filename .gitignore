@@ -20,9 +20,14 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Local environment secrets
-.env
-.env.*
+# Local environment secrets (ONLY exclude local variants, not the template)
+.env.local
+.env.development
+.env.production
+backend/api/.env.local
+backend/api/.env.development
+backend/api/.env.production
+
+# Allow .env template to be committed (contains only xxxxxx placeholders)
+# Users can copy it and create .env.local for their local credentials
 backend/api/.env
-backend/api/.env.*
-!backend/api/.env.example

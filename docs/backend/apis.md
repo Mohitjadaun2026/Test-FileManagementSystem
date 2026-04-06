@@ -70,10 +70,6 @@ Base URL (local): `http://localhost:8080/api`
 - Auth: `ADMIN | SUPER_ADMIN`
 - Returns aggregate dashboard metrics.
 
-### `PUT /api/file-loads/{id}/status`
-
-- Auth: `ADMIN | SUPER_ADMIN`
-- Updates status/comment.
 
 ### `PATCH /api/file-loads/{id}`
 
@@ -116,8 +112,6 @@ All endpoints are role-gated at controller level (`ADMIN | SUPER_ADMIN`) and fur
 
 ### File moderation
 
-- `PUT /api/admin/files/{id}/status` (`SUPER_ADMIN`)
-- `POST /api/admin/files/{id}/reprocess` (`SUPER_ADMIN`)
 - `DELETE /api/admin/files/{id}` (`SUPER_ADMIN`)
 
 ### Security controls
