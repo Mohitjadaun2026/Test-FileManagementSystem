@@ -17,7 +17,7 @@ export class ProfileDialogComponent implements OnInit {
   constructor(
     private router: Router,
     private auth: AuthService,
-    private dialogRef: MatDialogRef<ProfileDialogComponent>  // ✅ IMPORTANT
+    private dialogRef: MatDialogRef<ProfileDialogComponent>
   ) {}
 
   getBackendBaseUrl(): string {
@@ -52,16 +52,22 @@ export class ProfileDialogComponent implements OnInit {
       .replace(/\b\w/g, (match) => match.toUpperCase());
   }
 
-  // ✅ FIXED
+
   goToProfile() {
-    this.dialogRef.close();        // 🔥 close dialog first
+    this.dialogRef.close();
     this.router.navigate(['/profile']);
   }
 
-  // ✅ ALSO FIX THIS
+
   logout() {
-    this.dialogRef.close();        // close dialog
-    this.auth.logout();
-    this.router.navigate(['/']);
-  }
+  // 1. Close the profile dialog
+  this.dialogRef.close();
+
+  // 2. Clear the session/tokens via your service
+  this.auth.logout();
+
+  // 3. Force redirect to the login page
+  this.router.navigate(['/login']);
+}
+
 }

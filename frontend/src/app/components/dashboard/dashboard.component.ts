@@ -20,20 +20,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(private router: Router, private auth: AuthService, private fileLoadService: FileLoadService) {}
 
   ngOnInit(): void {
-    this.overviewSub = interval(10000)
-      .pipe(startWith(0), switchMap(() => this.fetchOverview()))
-      .subscribe({
-        next: (overview) => {
-          this.overview = overview;
-          this.loadingOverview = false;
-          this.overviewError = '';
-        },
-        error: () => {
-          this.loadingOverview = false;
-          this.overviewError = 'Unable to load live metrics right now.';
-        }
-      });
+  // 1. Check if authenticated immediately
+  if (!this.auth.isAuthenticated()) {
+    this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+    return; // Stop execution
   }
+
+  // 2. Only if logged in, start the dashboard metrics polling
+  this.overviewSub = interval(10000)
+    .pipe(
+      startWith(0),
+      switchMap(() => this.fetchOverview())
+)
+.subscribe({
+      next: (overview) => {
+        this.overview = overview;
+        this.loadingOverview = false;
+        this.overviewError = '';
+      },
+      error: () => {
+        this.loadingOverview = false;
+        this.overviewError = 'Unable to load live metrics right now.';
+      }
+    });
+}
+
 
   ngOnDestroy(): void {
     this.overviewSub?.unsubscribe();
