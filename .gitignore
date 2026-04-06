@@ -30,4 +30,4 @@ backend/api/.env.production
 
 # Allow .env template to be committed (contains only xxxxxx placeholders)
 # Users can copy it and create .env.local for their local credentials
-!backend/api/.env
+backend/api/.env
