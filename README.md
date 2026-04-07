@@ -22,7 +22,7 @@ Update `.env` file in `backend/api/` directory:
 
 ```powershell
 cd backend/api
-# Edit .env file and replace all xxxxxx with your actual credentials
+# Add .env file 
 # See below for where to get each credential
 ```
 
